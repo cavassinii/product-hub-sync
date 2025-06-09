@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Search, Eye, Trash2 } from 'lucide-react';
+import { Plus, Search, Eye, Trash2, ExternalLink } from 'lucide-react';
 import { apiService } from '@/services/api';
 import { Product } from '@/types/product';
 import { useToast } from '@/hooks/use-toast';
@@ -28,12 +28,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { MercadoLivrePopup } from '@/components/MercadoLivrePopup';
 
 export default function Products() {
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [showMercadoLivrePopup, setShowMercadoLivrePopup] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -82,11 +85,9 @@ export default function Products() {
     }
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
+  const handleOpenMercadoLivrePopup = (product: Product) => {
+    setSelectedProduct(product);
+    setShowMercadoLivrePopup(true);
   };
 
   const formatDate = (dateString?: string) => {
@@ -190,6 +191,14 @@ export default function Products() {
                               <Eye className="h-4 w-4" />
                             </Button>
                           </Link>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleOpenMercadoLivrePopup(product)}
+                            className="text-blue-600 hover:text-blue-700"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
@@ -237,6 +246,17 @@ export default function Products() {
           </div>
         )}
       </CardContent>
+
+      {selectedProduct && (
+        <MercadoLivrePopup
+          product={selectedProduct}
+          isOpen={showMercadoLivrePopup}
+          onClose={() => {
+            setShowMercadoLivrePopup(false);
+            setSelectedProduct(null);
+          }}
+        />
+      )}
     </>
   );
 }

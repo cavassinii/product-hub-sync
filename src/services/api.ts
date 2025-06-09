@@ -1,6 +1,8 @@
 
 import { LoginRequest, AuthResponse } from '@/types/auth';
 import { Product, ProductResponse } from '@/types/product';
+import { Category, Subcategory, CategoryResponse } from '@/types/category';
+import { Brand, BrandResponse } from '@/types/brand';
 
 const API_BASE_URL = 'https://your-api-url.com';
 
@@ -93,6 +95,83 @@ class ApiService {
     return this.request<ProductResponse>(`/api/Products/${id}`, {
       method: 'POST',
     });
+  }
+
+  async sendProductToMercadoLivre(productId: number): Promise<any> {
+    return this.request<any>(`/api/Products/${productId}/mercadolivre`, {
+      method: 'POST',
+    });
+  }
+
+  // Category endpoints
+  async getCategories(): Promise<Category[]> {
+    return this.request<Category[]>('/api/Categories');
+  }
+
+  async getCategory(id: number): Promise<Category> {
+    return this.request<Category>(`/api/Categories/${id}`);
+  }
+
+  async saveCategory(category: Category): Promise<CategoryResponse> {
+    return this.request<CategoryResponse>('/api/Categories', {
+      method: 'POST',
+      body: JSON.stringify(category),
+    });
+  }
+
+  async deleteCategory(id: number): Promise<CategoryResponse> {
+    return this.request<CategoryResponse>(`/api/Categories/${id}`, {
+      method: 'POST',
+    });
+  }
+
+  // Subcategory endpoints
+  async getSubcategories(): Promise<Subcategory[]> {
+    return this.request<Subcategory[]>('/api/Subcategories');
+  }
+
+  async getSubcategory(id: number): Promise<Subcategory> {
+    return this.request<Subcategory>(`/api/Subcategories/${id}`);
+  }
+
+  async saveSubcategory(subcategory: Subcategory): Promise<CategoryResponse> {
+    return this.request<CategoryResponse>('/api/Subcategories', {
+      method: 'POST',
+      body: JSON.stringify(subcategory),
+    });
+  }
+
+  async deleteSubcategory(id: number): Promise<CategoryResponse> {
+    return this.request<CategoryResponse>(`/api/Subcategories/${id}`, {
+      method: 'POST',
+    });
+  }
+
+  // Brand endpoints
+  async getBrands(): Promise<Brand[]> {
+    return this.request<Brand[]>('/api/Brands');
+  }
+
+  async getBrand(id: number): Promise<Brand> {
+    return this.request<Brand>(`/api/Brands/${id}`);
+  }
+
+  async saveBrand(brand: Brand): Promise<BrandResponse> {
+    return this.request<BrandResponse>('/api/Brands', {
+      method: 'POST',
+      body: JSON.stringify(brand),
+    });
+  }
+
+  async deleteBrand(id: number): Promise<BrandResponse> {
+    return this.request<BrandResponse>(`/api/Brands/${id}`, {
+      method: 'POST',
+    });
+  }
+
+  // Mercado Livre categories
+  async getMercadoLivreCategories(): Promise<any[]> {
+    return this.request<any[]>('/api/MercadoLivre/categories');
   }
 }
 

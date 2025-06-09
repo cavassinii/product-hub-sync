@@ -2,7 +2,7 @@
 import { LoginRequest, AuthResponse } from '@/types/auth';
 import { Product, ProductResponse } from '@/types/product';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://your-api-url.com';
+const API_BASE_URL = 'https://your-api-url.com';
 
 class ApiService {
   private token: string | null = null;
@@ -15,9 +15,9 @@ class ApiService {
     url: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...(options.headers as Record<string, string>),
     };
 
     if (this.token) {

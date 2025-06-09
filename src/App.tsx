@@ -9,6 +9,8 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Layout } from "./components/Layout";
 import Login from "./pages/Login";
 import Products from "./pages/Products";
+import Categories from "./pages/Categories";
+import Brands from "./pages/Brands";
 import ProductForm from "./pages/ProductForm";
 import NotFound from "./pages/NotFound";
 
@@ -39,6 +41,26 @@ const App = () => (
                 <ProtectedRoute>
                   <Layout>
                     <ProductForm />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/categories"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Categories />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/brands"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Brands />
                   </Layout>
                 </ProtectedRoute>
               }

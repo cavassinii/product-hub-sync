@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -19,29 +18,32 @@ export default function ProductForm() {
   const isEditing = !!id && id !== 'new';
 
   const [formData, setFormData] = useState<Product>({
-    Sku: '',
-    Title: '',
-    Description: '',
-    Reference: '',
-    Url_image1: '',
-    Url_image2: '',
-    Url_image3: '',
-    Url_image4: '',
-    Url_image5: '',
-    Ncm: '',
-    Cest: '',
-    Color: '',
-    Size: '',
-    Category1: '',
-    Category2: '',
-    Category3: '',
-    Brand: '',
-    Weight_gross: 0,
-    Weight_net: 0,
-    Width: 0,
-    Height: 0,
-    Unit: '',
-    Is_active: true,
+    id: 0,
+    sku: '',
+    title: '',
+    description: '',
+    reference: '',
+    url_image1: '',
+    url_image2: '',
+    url_image3: '',
+    url_image4: '',
+    url_image5: '',
+    ncm: '',
+    cest: '',
+    color: '',
+    size: '',
+    category1: '',
+    category2: '',
+    category3: '',
+    brand: '',
+    weight_gross: 0,
+    weight_net: 0,
+    width: 0,
+    height: 0,
+    unit: '',
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -80,7 +82,7 @@ export default function ProductForm() {
       await apiService.saveProduct(formData);
       toast({
         title: isEditing ? "Produto atualizado" : "Produto criado",
-        description: `O produto "${formData.Title}" foi ${isEditing ? 'atualizado' : 'criado'} com sucesso.`,
+        description: `O produto "${formData.title}" foi ${isEditing ? 'atualizado' : 'criado'} com sucesso.`,
       });
       navigate('/products');
     } catch (error) {
@@ -100,7 +102,7 @@ export default function ProductForm() {
     const value = e.target.value;
     setFormData(prev => ({
       ...prev,
-      [field]: field === 'Weight_gross' || field === 'Weight_net' || field === 'Width' || field === 'Height'
+      [field]: field === 'weight_gross' || field === 'weight_net' || field === 'width' || field === 'height'
         ? parseFloat(value) || 0
         : value
     }));
@@ -138,7 +140,7 @@ export default function ProductForm() {
               {isEditing ? 'Editar Produto' : 'Novo Produto'}
             </CardTitle>
             <p className="text-muted-foreground">
-              {isEditing ? `Editando: ${formData.Title}` : 'Preencha os dados do novo produto'}
+              {isEditing ? `Editando: ${formData.title}` : 'Preencha os dados do novo produto'}
             </p>
           </div>
         </div>
@@ -154,8 +156,8 @@ export default function ProductForm() {
                 <Label htmlFor="sku">SKU *</Label>
                 <Input
                   id="sku"
-                  value={formData.Sku}
-                  onChange={handleInputChange('Sku')}
+                  value={formData.sku}
+                  onChange={handleInputChange('sku')}
                   placeholder="Código SKU único"
                   required
                 />
@@ -164,8 +166,8 @@ export default function ProductForm() {
                 <Label htmlFor="reference">Referência</Label>
                 <Input
                   id="reference"
-                  value={formData.Reference}
-                  onChange={handleInputChange('Reference')}
+                  value={formData.reference}
+                  onChange={handleInputChange('reference')}
                   placeholder="Referência do produto"
                 />
               </div>
@@ -175,8 +177,8 @@ export default function ProductForm() {
               <Label htmlFor="title">Título *</Label>
               <Input
                 id="title"
-                value={formData.Title}
-                onChange={handleInputChange('Title')}
+                value={formData.title}
+                onChange={handleInputChange('title')}
                 placeholder="Nome do produto"
                 required
               />
@@ -186,8 +188,8 @@ export default function ProductForm() {
               <Label htmlFor="description">Descrição *</Label>
               <Textarea
                 id="description"
-                value={formData.Description}
-                onChange={handleInputChange('Description')}
+                value={formData.description}
+                onChange={handleInputChange('description')}
                 placeholder="Descrição detalhada do produto"
                 rows={4}
                 required
@@ -204,8 +206,8 @@ export default function ProductForm() {
                   <Label htmlFor={`image${num}`}>Imagem {num} {num === 1 && '*'}</Label>
                   <Input
                     id={`image${num}`}
-                    value={formData[`Url_image${num}` as keyof Product] as string}
-                    onChange={handleInputChange(`Url_image${num}` as keyof Product)}
+                    value={formData[`url_image${num}` as keyof Product] as string}
+                    onChange={handleInputChange(`url_image${num}` as keyof Product)}
                     placeholder={`URL da imagem ${num}`}
                     type="url"
                     required={num === 1}
@@ -223,8 +225,8 @@ export default function ProductForm() {
                 <Label htmlFor="brand">Marca *</Label>
                 <Input
                   id="brand"
-                  value={formData.Brand}
-                  onChange={handleInputChange('Brand')}
+                  value={formData.brand}
+                  onChange={handleInputChange('brand')}
                   placeholder="Marca do produto"
                   required
                 />
@@ -233,8 +235,8 @@ export default function ProductForm() {
                 <Label htmlFor="category1">Categoria Principal *</Label>
                 <Input
                   id="category1"
-                  value={formData.Category1}
-                  onChange={handleInputChange('Category1')}
+                  value={formData.category1}
+                  onChange={handleInputChange('category1')}
                   placeholder="Categoria principal"
                   required
                 />
@@ -243,8 +245,8 @@ export default function ProductForm() {
                 <Label htmlFor="category2">Categoria Secundária</Label>
                 <Input
                   id="category2"
-                  value={formData.Category2}
-                  onChange={handleInputChange('Category2')}
+                  value={formData.category2}
+                  onChange={handleInputChange('category2')}
                   placeholder="Categoria secundária"
                 />
               </div>
@@ -252,8 +254,8 @@ export default function ProductForm() {
                 <Label htmlFor="category3">Categoria Terciária</Label>
                 <Input
                   id="category3"
-                  value={formData.Category3}
-                  onChange={handleInputChange('Category3')}
+                  value={formData.category3}
+                  onChange={handleInputChange('category3')}
                   placeholder="Categoria terciária"
                 />
               </div>
@@ -268,8 +270,8 @@ export default function ProductForm() {
                 <Label htmlFor="color">Cor</Label>
                 <Input
                   id="color"
-                  value={formData.Color}
-                  onChange={handleInputChange('Color')}
+                  value={formData.color}
+                  onChange={handleInputChange('color')}
                   placeholder="Cor do produto"
                 />
               </div>
@@ -277,8 +279,8 @@ export default function ProductForm() {
                 <Label htmlFor="size">Tamanho</Label>
                 <Input
                   id="size"
-                  value={formData.Size}
-                  onChange={handleInputChange('Size')}
+                  value={formData.size}
+                  onChange={handleInputChange('size')}
                   placeholder="Tamanho do produto"
                 />
               </div>
@@ -286,8 +288,8 @@ export default function ProductForm() {
                 <Label htmlFor="unit">Unidade *</Label>
                 <Input
                   id="unit"
-                  value={formData.Unit}
-                  onChange={handleInputChange('Unit')}
+                  value={formData.unit}
+                  onChange={handleInputChange('unit')}
                   placeholder="Ex: UN, KG, M, etc."
                   required
                 />
@@ -305,8 +307,8 @@ export default function ProductForm() {
                   id="weight_gross"
                   type="number"
                   step="0.01"
-                  value={formData.Weight_gross}
-                  onChange={handleInputChange('Weight_gross')}
+                  value={formData.weight_gross}
+                  onChange={handleInputChange('weight_gross')}
                   placeholder="0.00"
                 />
               </div>
@@ -316,8 +318,8 @@ export default function ProductForm() {
                   id="weight_net"
                   type="number"
                   step="0.01"
-                  value={formData.Weight_net}
-                  onChange={handleInputChange('Weight_net')}
+                  value={formData.weight_net}
+                  onChange={handleInputChange('weight_net')}
                   placeholder="0.00"
                 />
               </div>
@@ -327,8 +329,8 @@ export default function ProductForm() {
                   id="width"
                   type="number"
                   step="0.01"
-                  value={formData.Width}
-                  onChange={handleInputChange('Width')}
+                  value={formData.width}
+                  onChange={handleInputChange('width')}
                   placeholder="0.00"
                 />
               </div>
@@ -338,8 +340,8 @@ export default function ProductForm() {
                   id="height"
                   type="number"
                   step="0.01"
-                  value={formData.Height}
-                  onChange={handleInputChange('Height')}
+                  value={formData.height}
+                  onChange={handleInputChange('height')}
                   placeholder="0.00"
                 />
               </div>
@@ -354,8 +356,8 @@ export default function ProductForm() {
                 <Label htmlFor="ncm">NCM</Label>
                 <Input
                   id="ncm"
-                  value={formData.Ncm}
-                  onChange={handleInputChange('Ncm')}
+                  value={formData.ncm}
+                  onChange={handleInputChange('ncm')}
                   placeholder="Código NCM"
                 />
               </div>
@@ -363,8 +365,8 @@ export default function ProductForm() {
                 <Label htmlFor="cest">CEST</Label>
                 <Input
                   id="cest"
-                  value={formData.Cest}
-                  onChange={handleInputChange('Cest')}
+                  value={formData.cest}
+                  onChange={handleInputChange('cest')}
                   placeholder="Código CEST"
                 />
               </div>
@@ -377,8 +379,8 @@ export default function ProductForm() {
             <div className="flex items-center space-x-3">
               <Switch
                 id="is_active"
-                checked={formData.Is_active}
-                onCheckedChange={handleSwitchChange('Is_active')}
+                checked={formData.is_active}
+                onCheckedChange={handleSwitchChange('is_active')}
               />
               <Label htmlFor="is_active" className="font-medium">
                 Produto ativo

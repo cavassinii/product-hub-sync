@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -41,25 +40,30 @@ export default function Products() {
   }, []);
 
   useEffect(() => {
-    const filtered = products.filter(product =>
-      product.Title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.Sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.Brand.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredProducts(filtered);
+    if (products.length > 0) {
+      const filtered = products.filter(product =>
+        (product.title?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (product.sku?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (product.brand?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+      );
+      setFilteredProducts(filtered);
+    } else {
+      setFilteredProducts([]);
+    }
   }, [products, searchTerm]);
 
   const loadProducts = async () => {
     try {
       setIsLoading(true);
       const data = await apiService.getProducts();
-      setProducts(data);
+      setProducts(data || []);
     } catch (error) {
       toast({
         title: "Erro ao carregar produtos",
         description: "Não foi possível carregar a lista de produtos.",
         variant: "destructive",
       });
+      setProducts([]);
     } finally {
       setIsLoading(false);
     }
@@ -68,7 +72,7 @@ export default function Products() {
   const handleDeleteProduct = async (id: number) => {
     try {
       await apiService.deleteProduct(id);
-      setProducts(prev => prev.filter(p => p.Id !== id));
+      setProducts(prev => prev.filter(p => p.id !== id));
       toast({
         title: "Produto removido",
         description: "O produto foi removido com sucesso.",
@@ -153,13 +157,13 @@ export default function Products() {
                   </TableRow>
                 ) : (
                   filteredProducts.map((product) => (
-                    <TableRow key={product.Id} className="hover:bg-muted/50 transition-colors">
+                    <TableRow key={`product-${product.id}`} className="hover:bg-muted/50 transition-colors">
                       <TableCell>
                         <div className="flex items-center space-x-3">
-                          {product.Url_image1 && (
+                          {product.url_image1 && (
                             <img
-                              src={product.Url_image1}
-                              alt={product.Title}
+                              src={product.url_image1}
+                              alt={product.title}
                               className="w-10 h-10 rounded-md object-cover"
                               onError={(e) => {
                                 e.currentTarget.style.display = 'none';
@@ -167,25 +171,25 @@ export default function Products() {
                             />
                           )}
                           <div>
-                            <p className="font-medium">{product.Title}</p>
+                            <p className="font-medium">{product.title}</p>
                             <p className="text-sm text-muted-foreground truncate max-w-[200px]">
-                              {product.Description}
+                              {product.description}
                             </p>
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="font-mono text-sm">{product.Sku}</TableCell>
-                      <TableCell>{product.Brand}</TableCell>
-                      <TableCell>{product.Category1}</TableCell>
+                      <TableCell className="font-mono text-sm">{product.sku}</TableCell>
+                      <TableCell>{product.brand}</TableCell>
+                      <TableCell>{product.category1}</TableCell>
                       <TableCell>
-                        <Badge variant={product.Is_active ? "default" : "secondary"}>
-                          {product.Is_active ? 'Ativo' : 'Inativo'}
+                        <Badge variant={product.is_active ? "default" : "secondary"}>
+                          {product.is_active ? 'Ativo' : 'Inativo'}
                         </Badge>
                       </TableCell>
-                      <TableCell>{formatDate(product.Created_at)}</TableCell>
+                      <TableCell>{formatDate(product.created_at)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end space-x-2">
-                          <Link to={`/products/${product.Id}`}>
+                          <Link to={`/products/${product.id}`}>
                             <Button variant="outline" size="sm">
                               <Eye className="h-4 w-4" />
                             </Button>
@@ -200,14 +204,14 @@ export default function Products() {
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Tem certeza que deseja excluir o produto "{product.Title}"? 
+                                  Tem certeza que deseja excluir o produto "{product.title}"? 
                                   Esta ação não pode ser desfeita.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
                                 <AlertDialogAction
-                                  onClick={() => handleDeleteProduct(product.Id!)}
+                                  onClick={() => handleDeleteProduct(product.id)}
                                   className="bg-destructive hover:bg-destructive/90"
                                 >
                                   Excluir
@@ -232,7 +236,7 @@ export default function Products() {
               Mostrando {filteredProducts.length} de {products.length} produtos
             </p>
             <p>
-              {products.filter(p => p.Is_active).length} ativos • {products.filter(p => !p.Is_active).length} inativos
+              {products.filter(p => p.is_active).length} ativos • {products.filter(p => !p.is_active).length} inativos
             </p>
           </div>
         )}

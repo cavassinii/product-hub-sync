@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -20,31 +19,39 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isAuthenticated } = useAuth();
-
-  // Redirect if already authenticated
-  if (isAuthenticated) {
-    navigate('/products');
-    return null;
-  }
+  const { setAuthenticated } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      await apiService.login(formData);
+      const response = await apiService.login(formData);
+      setAuthenticated(true);
       toast({
         title: "Login realizado com sucesso!",
         description: `Bem-vindo, ${formData.User}`,
       });
-      navigate('/products');
-    } catch (error) {
-      toast({
-        title: "Erro no login",
-        description: "Verifique suas credenciais e tente novamente.",
-        variant: "destructive",
-      });
+      // Redireciona apenas após o login bem-sucedido
+      navigate('/');
+    } catch (error: any) {
+      // Tratamento específico para erro 401 (Unauthorized)
+      if (error?.response?.status === 401) {
+        toast({
+          title: "Falha na autenticação",
+          description: error.response.data || "Usuário ou senha inválidos.",
+          variant: "destructive",
+        });
+      } else {
+        // Tratamento para outros tipos de erro
+        toast({
+          title: "Erro no login",
+          description: "Ocorreu um erro ao tentar fazer login. Tente novamente mais tarde.",
+          variant: "destructive",
+        });
+      }
+      // Garantir que o usuário não seja redirecionado em caso de erro
+      setAuthenticated(false);
     } finally {
       setIsLoading(false);
     }

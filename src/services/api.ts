@@ -1,8 +1,8 @@
-
 import { LoginRequest, AuthResponse } from '@/types/auth';
 import { Product, ProductResponse } from '@/types/product';
+import md5 from 'md5';
 
-const API_BASE_URL = 'https://your-api-url.com';
+const API_BASE_URL = 'https://localhost:7020';
 
 class ApiService {
   private token: string | null = null;
@@ -27,6 +27,7 @@ class ApiService {
     const response = await fetch(`${API_BASE_URL}${url}`, {
       ...options,
       headers,
+      credentials: 'include', // Importante para CORS com credenciais
     });
 
     if (response.status === 401) {
@@ -36,7 +37,8 @@ class ApiService {
     }
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || `HTTP error! status: ${response.status}`);
     }
 
     return response.json();
@@ -59,9 +61,15 @@ class ApiService {
 
   // Auth endpoints
   async login(credentials: LoginRequest): Promise<AuthResponse> {
+    const loginData = {
+      Organization: credentials.Organization,
+      User: credentials.User,
+      Password: md5(credentials.Password)
+    };
+
     const response = await this.request<AuthResponse>('/api/Auth/login', {
       method: 'POST',
-      body: JSON.stringify(credentials),
+      body: JSON.stringify(loginData),
     });
     
     this.setToken(response.token);

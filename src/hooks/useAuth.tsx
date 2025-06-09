@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '@/types/auth';
 import { apiService } from '@/services/api';
@@ -7,13 +6,16 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   logout: () => void;
+  setAuthenticated: (value: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return !!localStorage.getItem('auth_token');
+  });
 
   useEffect(() => {
     const token = apiService.getToken();
@@ -31,8 +33,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsAuthenticated(false);
   };
 
+  const setAuthenticated = (value: boolean) => {
+    setIsAuthenticated(value);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, logout, setAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );

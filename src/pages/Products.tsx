@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -12,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Search, Eye, Trash2, ExternalLink } from 'lucide-react';
+import { Plus, Search, Eye, Trash2 } from 'lucide-react';
 import { apiService } from '@/services/api';
 import { Product } from '@/types/product';
 import { useToast } from '@/hooks/use-toast';
@@ -28,6 +29,8 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { MercadoLivrePopup } from '@/components/MercadoLivrePopup';
+import { ShopeePopup } from '@/components/ShopeePopup';
+import { IntegrationDropdown } from '@/components/IntegrationDropdown';
 
 export default function Products() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -36,6 +39,7 @@ export default function Products() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showMercadoLivrePopup, setShowMercadoLivrePopup] = useState(false);
+  const [showShopeePopup, setShowShopeePopup] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -94,9 +98,9 @@ export default function Products() {
     setShowMercadoLivrePopup(true);
   };
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('pt-BR');
+  const handleOpenShopeePopup = (product: Product) => {
+    setSelectedProduct(product);
+    setShowShopeePopup(true);
   };
 
   return (
@@ -195,14 +199,11 @@ export default function Products() {
                               <Eye className="h-4 w-4" />
                             </Button>
                           </Link>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleOpenMercadoLivrePopup(product)}
-                            className="text-blue-600 hover:text-blue-700"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </Button>
+                          <IntegrationDropdown
+                            product={product}
+                            onMercadoLivreClick={handleOpenMercadoLivrePopup}
+                            onShopeeClick={handleOpenShopeePopup}
+                          />
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
@@ -252,14 +253,24 @@ export default function Products() {
       </CardContent>
 
       {selectedProduct && (
-        <MercadoLivrePopup
-          product={selectedProduct}
-          isOpen={showMercadoLivrePopup}
-          onClose={() => {
-            setShowMercadoLivrePopup(false);
-            setSelectedProduct(null);
-          }}
-        />
+        <>
+          <MercadoLivrePopup
+            product={selectedProduct}
+            isOpen={showMercadoLivrePopup}
+            onClose={() => {
+              setShowMercadoLivrePopup(false);
+              setSelectedProduct(null);
+            }}
+          />
+          <ShopeePopup
+            product={selectedProduct}
+            isOpen={showShopeePopup}
+            onClose={() => {
+              setShowShopeePopup(false);
+              setSelectedProduct(null);
+            }}
+          />
+        </>
       )}
     </>
   );

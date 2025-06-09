@@ -2,7 +2,7 @@
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Package, LogOut, Store } from 'lucide-react';
+import { Package, LogOut, Store, Tags, Award, BarChart3 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 interface LayoutProps {
@@ -14,7 +14,10 @@ export function Layout({ children }: LayoutProps) {
   const location = useLocation();
 
   const navigation = [
+    { name: 'Dashboard', href: '/dashboard', icon: BarChart3 },
     { name: 'Produtos', href: '/products', icon: Package },
+    { name: 'Categorias', href: '/categories', icon: Tags },
+    { name: 'Marcas', href: '/brands', icon: Award },
   ];
 
   return (

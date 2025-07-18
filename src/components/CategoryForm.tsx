@@ -5,6 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -25,11 +32,18 @@ interface CategoryFormProps {
 export function CategoryForm({ isOpen, onClose, category, onSave }: CategoryFormProps) {
   const [formData, setFormData] = useState<Partial<Category>>({
     Name: '',
-    Description: '',
-    Is_active: true,
+    Parent_Id: null,
+    Is_Final: true,
   });
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (isOpen) {
+      loadCategories();
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (category) {
@@ -37,11 +51,20 @@ export function CategoryForm({ isOpen, onClose, category, onSave }: CategoryForm
     } else {
       setFormData({
         Name: '',
-        Description: '',
-        Is_active: true,
+        Parent_Id: null,
+        Is_Final: true,
       });
     }
   }, [category]);
+
+  const loadCategories = async () => {
+    try {
+      const data = await apiService.getCategories();
+      setCategories(data);
+    } catch (error) {
+      console.error('Erro ao carregar categorias:', error);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,6 +102,10 @@ export function CategoryForm({ isOpen, onClose, category, onSave }: CategoryForm
     }
   };
 
+  const availableParentCategories = categories.filter(cat => 
+    cat.Id !== category?.Id && !cat.Is_Final
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
@@ -101,22 +128,35 @@ export function CategoryForm({ isOpen, onClose, category, onSave }: CategoryForm
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Descrição</Label>
-            <Input
-              id="description"
-              value={formData.Description || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, Description: e.target.value }))}
-              placeholder="Descrição da categoria"
-            />
+            <Label htmlFor="parent">Categoria Pai</Label>
+            <Select
+              value={formData.Parent_Id?.toString() || ''}
+              onValueChange={(value) => setFormData(prev => ({ 
+                ...prev, 
+                Parent_Id: value ? parseInt(value) : null 
+              }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione uma categoria pai" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Nenhuma (categoria raiz)</SelectItem>
+                {availableParentCategories.map((cat) => (
+                  <SelectItem key={cat.Id} value={cat.Id!.toString()}>
+                    {cat.Name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex items-center space-x-2">
             <Switch
-              id="is_active"
-              checked={formData.Is_active}
-              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, Is_active: checked }))}
+              id="is_final"
+              checked={formData.Is_Final}
+              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, Is_Final: checked }))}
             />
-            <Label htmlFor="is_active">Categoria ativa</Label>
+            <Label htmlFor="is_final">Categoria final (permite produtos)</Label>
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">

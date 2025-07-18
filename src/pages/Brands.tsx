@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -130,8 +129,6 @@ export default function Brands() {
               <TableHeader>
                 <TableRow className="bg-muted/50">
                   <TableHead>Nome</TableHead>
-                  <TableHead>Descrição</TableHead>
-                  <TableHead>Status</TableHead>
                   <TableHead>Criado em</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
@@ -139,7 +136,7 @@ export default function Brands() {
               <TableBody>
                 {filteredBrands.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                    <TableCell colSpan={3} className="text-center py-12 text-muted-foreground">
                       {searchTerm ? 'Nenhuma marca encontrada' : 'Nenhuma marca cadastrada'}
                     </TableCell>
                   </TableRow>
@@ -149,17 +146,7 @@ export default function Brands() {
                       <TableCell>
                         <p className="font-medium">{brand.Name}</p>
                       </TableCell>
-                      <TableCell>
-                        <p className="text-sm text-muted-foreground">
-                          {brand.Description || '-'}
-                        </p>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={brand.Is_active ? "default" : "secondary"}>
-                          {brand.Is_active ? 'Ativo' : 'Inativo'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{formatDate(brand.Created_at)}</TableCell>
+                      <TableCell>{formatDate(brand.Created_At)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end space-x-2">
                           <Button
@@ -212,9 +199,6 @@ export default function Brands() {
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <p>
               Mostrando {filteredBrands.length} de {brands.length} marcas
-            </p>
-            <p>
-              {brands.filter(b => b.Is_active).length} ativas • {brands.filter(b => !b.Is_active).length} inativas
             </p>
           </div>
         )}

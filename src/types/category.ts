@@ -2,22 +2,10 @@
 export interface Category {
   Id?: number;
   Name: string;
-  Description?: string;
-  Is_active: boolean;
-  Created_at?: string;
-  Updated_at?: string;
-}
-
-export interface Subcategory {
-  Id?: number;
-  Name: string;
-  Description?: string;
-  CategoryId: number;
-  MercadoLivreCategoryId?: string;
-  MercadoLivreCategoryName?: string;
-  Is_active: boolean;
-  Created_at?: string;
-  Updated_at?: string;
+  Parent_Id?: number | null;
+  Is_Final: boolean;
+  Created_At?: string;
+  Updated_At?: string;
 }
 
 export interface CategoryResponse {

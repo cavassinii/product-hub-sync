@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import {
   Dialog,
   DialogContent,
@@ -25,8 +24,6 @@ interface BrandFormProps {
 export function BrandForm({ isOpen, onClose, brand, onSave }: BrandFormProps) {
   const [formData, setFormData] = useState<Partial<Brand>>({
     Name: '',
-    Description: '',
-    Is_active: true,
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -37,8 +34,6 @@ export function BrandForm({ isOpen, onClose, brand, onSave }: BrandFormProps) {
     } else {
       setFormData({
         Name: '',
-        Description: '',
-        Is_active: true,
       });
     }
   }, [brand]);
@@ -98,25 +93,6 @@ export function BrandForm({ isOpen, onClose, brand, onSave }: BrandFormProps) {
               placeholder="Nome da marca"
               required
             />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Descrição</Label>
-            <Input
-              id="description"
-              value={formData.Description || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, Description: e.target.value }))}
-              placeholder="Descrição da marca"
-            />
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="is_active"
-              checked={formData.Is_active}
-              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, Is_active: checked }))}
-            />
-            <Label htmlFor="is_active">Marca ativa</Label>
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">

@@ -1,5 +1,8 @@
+
 import { LoginRequest, AuthResponse } from '@/types/auth';
 import { Product, ProductResponse } from '@/types/product';
+import { Category, Subcategory, CategoryResponse } from '@/types/category';
+import { Brand, BrandResponse } from '@/types/brand';
 import md5 from 'md5';
 
 const API_BASE_URL = 'https://localhost:7020';

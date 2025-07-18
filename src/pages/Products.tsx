@@ -103,6 +103,11 @@ export default function Products() {
     setShowShopeePopup(true);
   };
 
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString('pt-BR');
+  };
+
   return (
     <>
       <CardHeader>

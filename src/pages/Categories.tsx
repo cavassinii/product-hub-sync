@@ -12,9 +12,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Search, Edit, Trash2, FolderOpen } from 'lucide-react';
+import { Plus, Search, Edit, Trash2 } from 'lucide-react';
 import { apiService } from '@/services/api';
-import { Category, Subcategory } from '@/types/category';
+import { Category } from '@/types/category';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -28,23 +28,18 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { CategoryForm } from '@/components/CategoryForm';
-import { SubcategoryForm } from '@/components/SubcategoryForm';
 
 export default function Categories() {
   const [categories, setCategories] = useState<Category[]>([]);
-  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
-  const [showSubcategoryForm, setShowSubcategoryForm] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
-  const [selectedSubcategory, setSelectedSubcategory] = useState<Subcategory | null>(null);
-  const [selectedCategoryForSub, setSelectedCategoryForSub] = useState<number | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    loadData();
+    loadCategories();
   }, []);
 
   useEffect(() => {
@@ -54,18 +49,14 @@ export default function Categories() {
     setFilteredCategories(filtered);
   }, [categories, searchTerm]);
 
-  const loadData = async () => {
+  const loadCategories = async () => {
     try {
       setIsLoading(true);
-      const [categoriesData, subcategoriesData] = await Promise.all([
-        apiService.getCategories(),
-        apiService.getSubcategories()
-      ]);
-      setCategories(categoriesData);
-      setSubcategories(subcategoriesData);
+      const data = await apiService.getCategories();
+      setCategories(data);
     } catch (error) {
       toast({
-        title: "Erro ao carregar dados",
+        title: "Erro ao carregar categorias",
         description: "Não foi possível carregar as categorias.",
         variant: "destructive",
       });
@@ -91,30 +82,42 @@ export default function Categories() {
     }
   };
 
-  const handleDeleteSubcategory = async (id: number) => {
-    try {
-      await apiService.deleteSubcategory(id);
-      setSubcategories(prev => prev.filter(s => s.Id !== id));
-      toast({
-        title: "Subcategoria removida",
-        description: "A subcategoria foi removida com sucesso.",
-      });
-    } catch (error) {
-      toast({
-        title: "Erro ao remover subcategoria",
-        description: "Não foi possível remover a subcategoria.",
-        variant: "destructive",
-      });
-    }
-  };
-
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-';
     return new Date(dateString).toLocaleDateString('pt-BR');
   };
 
-  const getCategorySubcategories = (categoryId: number) => {
-    return subcategories.filter(sub => sub.CategoryId === categoryId);
+  const getParentCategoryName = (parentId?: number | null) => {
+    if (!parentId) return 'Categoria raiz';
+    const parent = categories.find(cat => cat.Id === parentId);
+    return parent ? parent.Name : 'Categoria não encontrada';
+  };
+
+  const buildCategoryHierarchy = () => {
+    const hierarchy: Category[] = [];
+    const categoryMap = new Map<number, Category>();
+    
+    // First pass: create a map of all categories
+    categories.forEach(cat => {
+      if (cat.Id) {
+        categoryMap.set(cat.Id, { ...cat, children: [] });
+      }
+    });
+    
+    // Second pass: build the hierarchy
+    categoryMap.forEach(cat => {
+      if (cat.Parent_Id && categoryMap.has(cat.Parent_Id)) {
+        const parent = categoryMap.get(cat.Parent_Id);
+        if (parent && !parent.children) {
+          parent.children = [];
+        }
+        parent?.children?.push(cat);
+      } else {
+        hierarchy.push(cat);
+      }
+    });
+    
+    return hierarchy;
   };
 
   return (
@@ -124,18 +127,16 @@ export default function Categories() {
           <div>
             <CardTitle className="text-2xl font-bold">Gestão de Categorias</CardTitle>
             <p className="text-muted-foreground">
-              Gerencie categorias e subcategorias
+              Gerencie as categorias dos produtos
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button 
-              onClick={() => setShowCategoryForm(true)}
-              className="gradient-primary border-0 hover:opacity-90 transition-opacity"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Categoria
-            </Button>
-          </div>
+          <Button 
+            onClick={() => setShowCategoryForm(true)}
+            className="gradient-primary border-0 hover:opacity-90 transition-opacity"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Categoria
+          </Button>
         </div>
       </CardHeader>
 
@@ -161,9 +162,9 @@ export default function Categories() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead>Categoria</TableHead>
-                  <TableHead>Subcategorias</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Categoria Pai</TableHead>
+                  <TableHead>Tipo</TableHead>
                   <TableHead>Criado em</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
@@ -176,87 +177,61 @@ export default function Categories() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredCategories.map((category) => {
-                    const categorySubcategories = getCategorySubcategories(category.Id!);
-                    return (
-                      <TableRow key={category.Id} className="hover:bg-muted/50 transition-colors">
-                        <TableCell>
-                          <div>
-                            <p className="font-medium">{category.Name}</p>
-                            {category.Description && (
-                              <p className="text-sm text-muted-foreground">{category.Description}</p>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            {categorySubcategories.map((sub) => (
-                              <Badge key={sub.Id} variant="outline" className="text-xs">
-                                {sub.Name}
-                              </Badge>
-                            ))}
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedCategoryForSub(category.Id!);
-                                setShowSubcategoryForm(true);
-                              }}
-                              className="h-6 px-2 text-xs"
-                            >
-                              <Plus className="h-3 w-3 mr-1" />
-                              Adicionar
-                            </Button>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={category.Is_active ? "default" : "secondary"}>
-                            {category.Is_active ? 'Ativo' : 'Inativo'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{formatDate(category.Created_at)}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedCategory(category);
-                                setShowCategoryForm(true);
-                              }}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Tem certeza que deseja excluir a categoria "{category.Name}"? 
-                                    Esta ação não pode ser desfeita.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => handleDeleteCategory(category.Id!)}
-                                    className="bg-destructive hover:bg-destructive/90"
-                                  >
-                                    Excluir
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
+                  filteredCategories.map((category) => (
+                    <TableRow key={category.Id} className="hover:bg-muted/50 transition-colors">
+                      <TableCell>
+                        <p className="font-medium">{category.Name}</p>
+                      </TableCell>
+                      <TableCell>
+                        {getParentCategoryName(category.Parent_Id)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={category.Is_Final ? "default" : "secondary"}>
+                          {category.Is_Final ? 'Final' : 'Intermediária'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{formatDate(category.Created_At)}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedCategory(category);
+                              setShowCategoryForm(true);
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Tem certeza que deseja excluir a categoria "{category.Name}"? 
+                                  Esta ação não pode ser desfeita.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteCategory(category.Id!)}
+                                  className="bg-destructive hover:bg-destructive/90"
+                                >
+                                  Excluir
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
                 )}
               </TableBody>
             </Table>
@@ -270,7 +245,7 @@ export default function Categories() {
               Mostrando {filteredCategories.length} de {categories.length} categorias
             </p>
             <p>
-              {categories.filter(c => c.Is_active).length} ativas • {categories.filter(c => !c.Is_active).length} inativas
+              {categories.filter(c => c.Is_Final).length} finais • {categories.filter(c => !c.Is_Final).length} intermediárias
             </p>
           </div>
         )}
@@ -283,20 +258,7 @@ export default function Categories() {
           setSelectedCategory(null);
         }}
         category={selectedCategory}
-        onSave={loadData}
-      />
-
-      <SubcategoryForm
-        isOpen={showSubcategoryForm}
-        onClose={() => {
-          setShowSubcategoryForm(false);
-          setSelectedSubcategory(null);
-          setSelectedCategoryForSub(null);
-        }}
-        subcategory={selectedSubcategory}
-        categoryId={selectedCategoryForSub}
-        categories={categories}
-        onSave={loadData}
+        onSave={loadCategories}
       />
     </>
   );

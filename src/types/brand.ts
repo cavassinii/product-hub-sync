@@ -2,10 +2,8 @@
 export interface Brand {
   Id?: number;
   Name: string;
-  Description?: string;
-  Is_active: boolean;
-  Created_at?: string;
-  Updated_at?: string;
+  Created_At?: string;
+  Updated_At?: string;
 }
 
 export interface BrandResponse {

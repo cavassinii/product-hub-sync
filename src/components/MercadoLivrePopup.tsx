@@ -27,11 +27,11 @@ export function MercadoLivrePopup({ product, isOpen, onClose }: MercadoLivrePopu
   const handleSendToMercadoLivre = async () => {
     try {
       setIsLoading(true);
-      await apiService.sendProductToMercadoLivre(product.Id!);
+      await apiService.sendProductToMercadoLivre(product.id);
       
       toast({
         title: "Produto enviado com sucesso!",
-        description: `O produto "${product.Title}" foi enviado ao Mercado Livre.`,
+        description: `O produto "${product.title}" foi enviado ao Mercado Livre.`,
       });
       
       onClose();
@@ -62,17 +62,17 @@ export function MercadoLivrePopup({ product, isOpen, onClose }: MercadoLivrePopu
         <div className="py-4">
           <div className="space-y-3">
             <div className="flex items-center space-x-3">
-              {product.Url_image1 && (
+              {product.url_image1 && (
                 <img
-                  src={product.Url_image1}
-                  alt={product.Title}
+                  src={product.url_image1}
+                  alt={product.title}
                   className="w-16 h-16 rounded-md object-cover"
                 />
               )}
               <div>
-                <h4 className="font-medium">{product.Title}</h4>
-                <p className="text-sm text-muted-foreground">SKU: {product.Sku}</p>
-                <p className="text-sm text-muted-foreground">Marca: {product.Brand}</p>
+                <h4 className="font-medium">{product.title}</h4>
+                <p className="text-sm text-muted-foreground">SKU: {product.sku}</p>
+                <p className="text-sm text-muted-foreground">Marca: {product.brand}</p>
               </div>
             </div>
           </div>

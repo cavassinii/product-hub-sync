@@ -44,7 +44,7 @@ export default function Categories() {
 
   useEffect(() => {
     const filtered = categories.filter(category =>
-      category.Name.toLowerCase().includes(searchTerm.toLowerCase())
+      category.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredCategories(filtered);
   }, [categories, searchTerm]);
@@ -68,7 +68,7 @@ export default function Categories() {
   const handleDeleteCategory = async (id: number) => {
     try {
       await apiService.deleteCategory(id);
-      setCategories(prev => prev.filter(c => c.Id !== id));
+      setCategories(prev => prev.filter(c => c.id !== id));
       toast({
         title: "Categoria removida",
         description: "A categoria foi removida com sucesso.",
@@ -89,8 +89,8 @@ export default function Categories() {
 
   const getParentCategoryName = (parentId?: number | null) => {
     if (!parentId) return 'Categoria raiz';
-    const parent = categories.find(cat => cat.Id === parentId);
-    return parent ? parent.Name : 'Categoria não encontrada';
+    const parent = categories.find(cat => cat.id === parentId);
+    return parent ? parent.name : 'Categoria não encontrada';
   };
 
   const buildCategoryHierarchy = () => {
@@ -99,15 +99,15 @@ export default function Categories() {
     
     // First pass: create a map of all categories
     categories.forEach(cat => {
-      if (cat.Id) {
-        categoryMap.set(cat.Id, { ...cat, children: [] });
+      if (cat.id) {
+        categoryMap.set(cat.id, { ...cat, children: [] });
       }
     });
     
     // Second pass: build the hierarchy
     categoryMap.forEach(cat => {
-      if (cat.Parent_Id && categoryMap.has(cat.Parent_Id)) {
-        const parent = categoryMap.get(cat.Parent_Id);
+      if (cat.parent_Id && categoryMap.has(cat.parent_Id)) {
+        const parent = categoryMap.get(cat.parent_Id);
         if (parent && !parent.children) {
           parent.children = [];
         }
@@ -178,19 +178,19 @@ export default function Categories() {
                   </TableRow>
                 ) : (
                   filteredCategories.map((category) => (
-                    <TableRow key={category.Id} className="hover:bg-muted/50 transition-colors">
+                    <TableRow key={category.id} className="hover:bg-muted/50 transition-colors">
                       <TableCell>
-                        <p className="font-medium">{category.Name}</p>
+                        <p className="font-medium">{category.name}</p>
                       </TableCell>
                       <TableCell>
-                        {getParentCategoryName(category.Parent_Id)}
+                        {getParentCategoryName(category.parent_Id)}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={category.Is_Final ? "default" : "secondary"}>
-                          {category.Is_Final ? 'Final' : 'Intermediária'}
+                        <Badge variant={category.is_Final ? "default" : "secondary"}>
+                          {category.is_Final ? 'Final' : 'Intermediária'}
                         </Badge>
                       </TableCell>
-                      <TableCell>{formatDate(category.Created_At)}</TableCell>
+                      <TableCell>{formatDate(category.created_At)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end space-x-2">
                           <Button
@@ -213,14 +213,14 @@ export default function Categories() {
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Tem certeza que deseja excluir a categoria "{category.Name}"? 
+                                  Tem certeza que deseja excluir a categoria "{category.name}"? 
                                   Esta ação não pode ser desfeita.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
                                 <AlertDialogAction
-                                  onClick={() => handleDeleteCategory(category.Id!)}
+                                  onClick={() => handleDeleteCategory(category.id!)}
                                   className="bg-destructive hover:bg-destructive/90"
                                 >
                                   Excluir
@@ -245,7 +245,7 @@ export default function Categories() {
               Mostrando {filteredCategories.length} de {categories.length} categorias
             </p>
             <p>
-              {categories.filter(c => c.Is_Final).length} finais • {categories.filter(c => !c.Is_Final).length} intermediárias
+              {categories.filter(c => c.is_Final).length} finais • {categories.filter(c => !c.is_Final).length} intermediárias
             </p>
           </div>
         )}

@@ -43,7 +43,7 @@ export default function Brands() {
 
   useEffect(() => {
     const filtered = brands.filter(brand =>
-      brand.Name.toLowerCase().includes(searchTerm.toLowerCase())
+      brand.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredBrands(filtered);
   }, [brands, searchTerm]);
@@ -67,7 +67,7 @@ export default function Brands() {
   const handleDeleteBrand = async (id: number) => {
     try {
       await apiService.deleteBrand(id);
-      setBrands(prev => prev.filter(b => b.Id !== id));
+      setBrands(prev => prev.filter(b => b.id !== id));
       toast({
         title: "Marca removida",
         description: "A marca foi removida com sucesso.",
@@ -142,11 +142,11 @@ export default function Brands() {
                   </TableRow>
                 ) : (
                   filteredBrands.map((brand) => (
-                    <TableRow key={brand.Id} className="hover:bg-muted/50 transition-colors">
+                    <TableRow key={brand.id} className="hover:bg-muted/50 transition-colors">
                       <TableCell>
-                        <p className="font-medium">{brand.Name}</p>
+                        <p className="font-medium">{brand.name}</p>
                       </TableCell>
-                      <TableCell>{formatDate(brand.Created_At)}</TableCell>
+                                              <TableCell>{formatDate(brand.created_at)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end space-x-2">
                           <Button
@@ -169,14 +169,14 @@ export default function Brands() {
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Tem certeza que deseja excluir a marca "{brand.Name}"? 
+                                  Tem certeza que deseja excluir a marca "{brand.name}"? 
                                   Esta ação não pode ser desfeita.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
                                 <AlertDialogAction
-                                  onClick={() => handleDeleteBrand(brand.Id!)}
+                                  onClick={() => handleDeleteBrand(brand.id!)}
                                   className="bg-destructive hover:bg-destructive/90"
                                 >
                                   Excluir

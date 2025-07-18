@@ -23,7 +23,7 @@ interface BrandFormProps {
 
 export function BrandForm({ isOpen, onClose, brand, onSave }: BrandFormProps) {
   const [formData, setFormData] = useState<Partial<Brand>>({
-    Name: '',
+    name: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -33,7 +33,7 @@ export function BrandForm({ isOpen, onClose, brand, onSave }: BrandFormProps) {
       setFormData(brand);
     } else {
       setFormData({
-        Name: '',
+        name: '',
       });
     }
   }, [brand]);
@@ -41,7 +41,7 @@ export function BrandForm({ isOpen, onClose, brand, onSave }: BrandFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.Name?.trim()) {
+    if (!formData.name?.trim()) {
       toast({
         title: "Erro de validação",
         description: "Nome da marca é obrigatório.",
@@ -88,8 +88,8 @@ export function BrandForm({ isOpen, onClose, brand, onSave }: BrandFormProps) {
             <Label htmlFor="name">Nome *</Label>
             <Input
               id="name"
-              value={formData.Name || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, Name: e.target.value }))}
+              value={formData.name || ''}
+              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               placeholder="Nome da marca"
               required
             />

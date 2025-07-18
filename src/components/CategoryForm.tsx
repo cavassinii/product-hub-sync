@@ -31,9 +31,9 @@ interface CategoryFormProps {
 
 export function CategoryForm({ isOpen, onClose, category, onSave }: CategoryFormProps) {
   const [formData, setFormData] = useState<Partial<Category>>({
-    Name: '',
-    Parent_Id: null,
-    Is_Final: true,
+    name: '',
+    parent_Id: null,
+    is_Final: true,
   });
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -50,9 +50,9 @@ export function CategoryForm({ isOpen, onClose, category, onSave }: CategoryForm
       setFormData(category);
     } else {
       setFormData({
-        Name: '',
-        Parent_Id: null,
-        Is_Final: true,
+        name: '',
+        parent_Id: null,
+        is_Final: true,
       });
     }
   }, [category]);
@@ -69,7 +69,7 @@ export function CategoryForm({ isOpen, onClose, category, onSave }: CategoryForm
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.Name?.trim()) {
+    if (!formData.name?.trim()) {
       toast({
         title: "Erro de validação",
         description: "Nome da categoria é obrigatório.",

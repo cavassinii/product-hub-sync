@@ -10,6 +10,10 @@ import { ArrowLeft, Save } from 'lucide-react';
 import { apiService } from '@/services/api';
 import { Product } from '@/types/product';
 import { useToast } from '@/hooks/use-toast';
+import { Brand } from '@/types/brand';
+import { Category } from '@/types/category';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { X } from 'lucide-react';
 
 export default function ProductForm() {
   const { id } = useParams();
@@ -32,10 +36,8 @@ export default function ProductForm() {
     cest: '',
     color: '',
     size: '',
-    category1: '',
-    category2: '',
-    category3: '',
-    brand: '',
+    category_id: 0,
+    brand_id: 0,
     weight_gross: 0,
     weight_net: 0,
     width: 0,
@@ -48,11 +50,17 @@ export default function ProductForm() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingProduct, setIsLoadingProduct] = useState(false);
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [categoryPath, setCategoryPath] = useState<Category[]>([]);
 
   useEffect(() => {
     if (isEditing) {
       loadProduct();
     }
+    loadBrands();
+    loadCategories();
   }, [id, isEditing]);
 
   const loadProduct = async () => {
@@ -72,6 +80,20 @@ export default function ProductForm() {
     } finally {
       setIsLoadingProduct(false);
     }
+  };
+
+  const loadBrands = async () => {
+    try {
+      const data = await apiService.getBrands();
+      setBrands(data);
+    } catch {}
+  };
+
+  const loadCategories = async () => {
+    try {
+      const data = await apiService.getCategories();
+      setCategories(data);
+    } catch {}
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -113,6 +135,46 @@ export default function ProductForm() {
       ...prev,
       [field]: checked
     }));
+  };
+
+  // Função para buscar as categorias filhas de uma categoria
+  const getChildren = (parentId: number | null) => {
+    return categories.filter(cat => cat.parent_Id === parentId);
+  };
+
+  // Função para abrir o modal e resetar o caminho
+  const openCategoryModal = () => {
+    setCategoryPath([]);
+    setShowCategoryModal(true);
+  };
+
+  // Função para navegar para uma categoria filha
+  const handleCategoryClick = (cat: Category) => {
+    setCategoryPath(prev => [...prev, cat]);
+  };
+
+  // Função para voltar um nível
+  const handleBack = () => {
+    setCategoryPath(prev => prev.slice(0, -1));
+  };
+
+  // Função para selecionar a categoria final
+  const handleSelectFinalCategory = (cat: Category) => {
+    setFormData(prev => ({ ...prev, category_id: cat.id }));
+    setCategoryPath([]);
+    setShowCategoryModal(false);
+  };
+
+  // Função para exibir o caminho da categoria
+  const getCategoryPathLabel = () => {
+    if (!formData.category_id) return 'Nenhuma categoria selecionada';
+    let path: string[] = [];
+    let current = categories.find(c => c.id === formData.category_id);
+    while (current) {
+      path.unshift(current.name);
+      current = current.parent_Id ? categories.find(c => c.id === current.parent_Id) : undefined;
+    }
+    return path.join(' > ');
   };
 
   if (isLoadingProduct) {
@@ -222,45 +284,73 @@ export default function ProductForm() {
             <h3 className="text-lg font-semibold border-b pb-2">Categorização</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="brand">Marca *</Label>
-                <Input
-                  id="brand"
-                  value={formData.brand}
-                  onChange={handleInputChange('brand')}
-                  placeholder="Marca do produto"
+                <Label htmlFor="brand_id">Marca *</Label>
+                <select
+                  id="brand_id"
+                  value={formData.brand_id || ''}
+                  onChange={e => setFormData(prev => ({ ...prev, brand_id: Number(e.target.value) }))}
                   required
-                />
+                  className="w-full border rounded px-3 py-2"
+                >
+                  <option value="">Selecione uma marca</option>
+                  {brands.map(brand => (
+                    <option key={brand.id} value={brand.id}>{brand.name}</option>
+                  ))}
+                </select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="category1">Categoria Principal *</Label>
-                <Input
-                  id="category1"
-                  value={formData.category1}
-                  onChange={handleInputChange('category1')}
-                  placeholder="Categoria principal"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="category2">Categoria Secundária</Label>
-                <Input
-                  id="category2"
-                  value={formData.category2}
-                  onChange={handleInputChange('category2')}
-                  placeholder="Categoria secundária"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="category3">Categoria Terciária</Label>
-                <Input
-                  id="category3"
-                  value={formData.category3}
-                  onChange={handleInputChange('category3')}
-                  placeholder="Categoria terciária"
-                />
+                <Label>Categoria *</Label>
+                <button
+                  type="button"
+                  className="w-full border rounded px-3 py-2 text-left bg-white hover:bg-gray-50"
+                  onClick={openCategoryModal}
+                >
+                  {getCategoryPathLabel()}
+                </button>
               </div>
             </div>
           </div>
+
+          {/* Modal de seleção de categoria */}
+          <Dialog open={showCategoryModal} onOpenChange={setShowCategoryModal}>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Selecione a categoria</DialogTitle>
+                {categoryPath.length > 0 && (
+                  <button type="button" onClick={handleBack} className="absolute left-4 top-4 text-gray-400 hover:text-gray-600">
+                    <X className="h-5 w-5" /> Voltar
+                  </button>
+                )}
+              </DialogHeader>
+              <div className="space-y-2">
+                {getChildren(categoryPath.length > 0 ? categoryPath[categoryPath.length - 1].id : null).map(cat => (
+                  <div key={cat.id} className="flex items-center justify-between border rounded px-3 py-2 mb-2">
+                    <span>{cat.name}</span>
+                    {cat.is_Final ? (
+                      <button
+                        type="button"
+                        className="text-primary font-semibold"
+                        onClick={() => handleSelectFinalCategory(cat)}
+                      >
+                        Selecionar
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="text-gray-500"
+                        onClick={() => handleCategoryClick(cat)}
+                      >
+                        Ver subcategorias
+                      </button>
+                    )}
+                  </div>
+                ))}
+                {getChildren(categoryPath.length > 0 ? categoryPath[categoryPath.length - 1].id : null).length === 0 && (
+                  <div className="text-center text-muted-foreground">Nenhuma subcategoria encontrada.</div>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
 
           {/* Características */}
           <div className="space-y-4">

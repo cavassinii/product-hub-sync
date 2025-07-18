@@ -32,8 +32,8 @@ interface CategoryFormProps {
 export function CategoryForm({ isOpen, onClose, category, onSave }: CategoryFormProps) {
   const [formData, setFormData] = useState<Partial<Category>>({
     name: '',
-    parent_Id: null,
-    is_Final: true,
+    parent_id: null,
+    is_final: true,
   });
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -51,8 +51,8 @@ export function CategoryForm({ isOpen, onClose, category, onSave }: CategoryForm
     } else {
       setFormData({
         name: '',
-        parent_Id: null,
-        is_Final: true,
+        parent_id: null,
+        is_final: true,
       });
     }
   }, [category]);
@@ -103,7 +103,7 @@ export function CategoryForm({ isOpen, onClose, category, onSave }: CategoryForm
   };
 
   const availableParentCategories = categories.filter(cat => 
-    cat.id !== category?.id && !cat.is_Final
+    cat.id !== category?.id && !cat.is_final
   );
 
   return (
@@ -130,7 +130,7 @@ export function CategoryForm({ isOpen, onClose, category, onSave }: CategoryForm
           <div className="space-y-2">
             <Label htmlFor="parent">Categoria Pai</Label>
             <Select
-              value={formData.parent_Id?.toString() || ''}
+              value={formData.parent_id?.toString() || ''}  
               onValueChange={(value) => setFormData(prev => ({ 
                 ...prev, 
                 parent_Id: value ? parseInt(value) : null 
@@ -153,8 +153,8 @@ export function CategoryForm({ isOpen, onClose, category, onSave }: CategoryForm
           <div className="flex items-center space-x-2">
             <Switch
               id="is_final"
-              checked={formData.is_Final}
-              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_Final: checked }))}
+              checked={formData.is_final}
+              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_final: checked }))}
             />
             <Label htmlFor="is_final">Categoria final (permite produtos)</Label>
           </div>

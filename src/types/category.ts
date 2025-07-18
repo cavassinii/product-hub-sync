@@ -2,10 +2,10 @@
 export interface Category {
   id: number;
   name: string;
-  parent_Id?: number | null;
-  is_Final: boolean;
-  created_At?: string;
-  updated_At?: string;
+  parent_id?: number | null;
+  is_final: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface CategoryResponse {
@@ -16,14 +16,14 @@ export interface CategoryResponse {
 export interface CreateCategoryRequest {
   id: number;
   name: string;
-  parent_Id?: number | null;
+  parent_id?: number | null;
   is_Final: boolean;
 }
 
 export interface UpdateCategoryRequest {
   id: number;
   name: string;
-  parent_Id?: number | null;
+  parent_id?: number | null;
   is_Final: boolean;
 }
 

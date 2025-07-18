@@ -153,14 +153,14 @@ export default function Categories() {
                         <p className="font-medium">{category.name}</p>
                       </TableCell>
                       <TableCell>
-                        {getParentCategoryName(category.parent_Id)}
+                        {getParentCategoryName(category.parent_id)}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={category.is_Final ? "default" : "secondary"}>
-                          {category.is_Final ? 'Final' : 'Intermediária'}
+                        <Badge variant={category.is_final ? "default" : "secondary"}>
+                          {category.is_final ? 'Final' : 'Intermediária'}
                         </Badge>
                       </TableCell>
-                      <TableCell>{formatDate(category.created_At)}</TableCell>
+                      <TableCell>{formatDate(category.created_at)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end space-x-2">
                           <Button variant="outline" size="sm" asChild>
@@ -210,7 +210,7 @@ export default function Categories() {
               Mostrando {filteredCategories.length} de {categories.length} categorias
             </p>
             <p>
-              {categories.filter(c => c.is_Final).length} finais • {categories.filter(c => !c.is_Final).length} intermediárias
+              {categories.filter(c => c.is_final).length} finais • {categories.filter(c => !c.is_final).length} intermediárias
             </p>
           </div>
         )}

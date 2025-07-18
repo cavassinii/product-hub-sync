@@ -1,7 +1,7 @@
 
 import { LoginRequest, AuthResponse } from '@/types/auth';
 import { Product, ProductResponse } from '@/types/product';
-import { Category, Subcategory, CategoryResponse } from '@/types/category';
+import { Category, CategoryResponse } from '@/types/category';
 import { Brand, BrandResponse } from '@/types/brand';
 import md5 from 'md5';
 
@@ -135,15 +135,15 @@ class ApiService {
   }
 
   // Subcategory endpoints
-  async getSubcategories(): Promise<Subcategory[]> {
-    return this.request<Subcategory[]>('/api/Subcategories');
+  async getSubcategories(): Promise<any[]> {
+    return this.request<any[]>('/api/Subcategories');
   }
 
-  async getSubcategory(id: number): Promise<Subcategory> {
-    return this.request<Subcategory>(`/api/Subcategories/${id}`);
+  async getSubcategory(id: number): Promise<any> {
+    return this.request<any>(`/api/Subcategories/${id}`);
   }
 
-  async saveSubcategory(subcategory: Subcategory): Promise<CategoryResponse> {
+  async saveSubcategory(subcategory: any): Promise<CategoryResponse> {
     return this.request<CategoryResponse>('/api/Subcategories', {
       method: 'POST',
       body: JSON.stringify(subcategory),

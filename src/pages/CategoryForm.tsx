@@ -22,8 +22,8 @@ import { Loader2, ArrowLeft, FolderTree, Folder, FileText } from 'lucide-react';
 export default function CategoryForm() {
   const [formData, setFormData] = useState<Partial<Category>>({
     name: '',
-    parent_Id: null,
-    is_Final: true,
+    parent_id: null,
+    is_final: true,
   });
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -117,7 +117,7 @@ export default function CategoryForm() {
   };
 
   const availableParentCategories = categories.filter(cat => 
-    cat.id !== formData.id && !cat.is_Final
+    cat.id !== formData.id && !cat.is_final
   );
 
   const getParentCategoryName = (parentId?: number | null) => {
@@ -184,10 +184,10 @@ export default function CategoryForm() {
                 Categoria Pai
               </Label>
               <Select
-                value={formData.parent_Id?.toString() || ''}
+                value={formData.parent_id?.toString() || ''}
                 onValueChange={(value) => setFormData(prev => ({ 
                   ...prev, 
-                  parent_Id: value ? parseInt(value) : null 
+                  parent_id: value ? parseInt(value) : null 
                 }))}
                 disabled={isLoadingCategories}
               >
@@ -201,20 +201,22 @@ export default function CategoryForm() {
                       <span>Nenhuma (categoria raiz)</span>
                     </div>
                   </SelectItem>
-                  {availableParentCategories.map((cat) => {
-                    const Icon = getCategoryIcon(cat.is_Final);
-                    return (
-                      <SelectItem key={cat.id} value={cat.id!.toString()}>
-                        <div className="flex items-center space-x-2">
-                          <Icon className="h-4 w-4" />
-                          <span>{cat.name}</span>
-                          <Badge variant="outline" className="ml-auto">
-                            Intermediária
-                          </Badge>
-                        </div>
-                      </SelectItem>
-                    );
-                  })}
+                  {availableParentCategories
+                    .filter(cat => typeof cat.id === 'number' && cat.id > 0)
+                    .map((cat) => {
+                      const Icon = getCategoryIcon(cat.is_final);
+                      return (
+                        <SelectItem key={cat.id} value={cat.id.toString()}>
+                          <div className="flex items-center space-x-2">
+                            <Icon className="h-4 w-4" />
+                            <span>{cat.name}</span>
+                            <Badge variant="outline" className="ml-auto">
+                              Intermediária
+                            </Badge>
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
@@ -223,7 +225,7 @@ export default function CategoryForm() {
             </div>
 
             {/* Preview da Hierarquia */}
-            {formData.parent_Id && (
+            {formData.parent_id && (
               <div className="p-4 bg-muted/50 rounded-lg border">
                 <Label className="text-sm font-medium mb-2 block">
                   Hierarquia da Categoria
@@ -231,7 +233,7 @@ export default function CategoryForm() {
                 <div className="flex items-center space-x-2 text-sm">
                   <FolderTree className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground">
-                    {getParentCategoryName(formData.parent_Id)}
+                    {getParentCategoryName(formData.parent_id)}
                   </span>
                   <span className="text-muted-foreground">→</span>
                   <span className="font-medium">
@@ -254,21 +256,21 @@ export default function CategoryForm() {
                 </div>
                 <Switch
                   id="is_final"
-                  checked={formData.is_Final}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_Final: checked }))}
+                  checked={formData.is_final}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_final: checked }))}
                 />
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className={`p-4 rounded-lg border-2 transition-colors ${
-                  formData.is_Final 
+                  formData.is_final 
                     ? 'border-primary bg-primary/5' 
                     : 'border-muted bg-muted/30'
                 }`}>
                   <div className="flex items-center space-x-2 mb-2">
                     <FileText className="h-4 w-4" />
                     <span className="font-medium">Categoria Final</span>
-                    {formData.is_Final && (
+                    {formData.is_final && (
                       <Badge variant="default" className="ml-auto">Selecionada</Badge>
                     )}
                   </div>
@@ -278,14 +280,14 @@ export default function CategoryForm() {
                 </div>
                 
                 <div className={`p-4 rounded-lg border-2 transition-colors ${
-                  !formData.is_Final 
+                  !formData.is_final 
                     ? 'border-primary bg-primary/5' 
                     : 'border-muted bg-muted/30'
                 }`}>
                   <div className="flex items-center space-x-2 mb-2">
                     <Folder className="h-4 w-4" />
                     <span className="font-medium">Categoria Intermediária</span>
-                    {!formData.is_Final && (
+                    {!formData.is_final && (
                       <Badge variant="default" className="ml-auto">Selecionada</Badge>
                     )}
                   </div>

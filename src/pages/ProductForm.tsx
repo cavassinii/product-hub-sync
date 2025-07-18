@@ -140,8 +140,8 @@ export default function ProductForm() {
   };
 
   // Função para buscar as categorias filhas de uma categoria
-  const getChildren = (parentId: number | null) => {
-    return categories.filter(cat => cat.parent_Id === parentId);
+  const getChildren = (parent_id: number | null) => {
+    return categories.filter(cat => cat.parent_id === parent_id);
   };
 
   // Função para abrir o modal e resetar o caminho
@@ -183,7 +183,7 @@ export default function ProductForm() {
     let current = categories.find(c => c.id === formData.category_id);
     while (current) {
       path.unshift(current.name);
-      current = current.parent_Id ? categories.find(c => c.id === current.parent_Id) : undefined;
+      current = current.parent_id ? categories.find(c => c.id === current.parent_id) : undefined;
     }
     return path.join(' > ');
   };
@@ -407,7 +407,7 @@ export default function ProductForm() {
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
                               <h4 className="font-medium">{cat.name}</h4>
-                              {cat.is_Final ? (
+                              {cat.is_final ? (
                                 <Badge variant="default" className="text-xs">
                                   Final
                                 </Badge>
@@ -417,7 +417,7 @@ export default function ProductForm() {
                                 </Badge>
                               )}
                             </div>
-                            {cat.is_Final && (
+                            {cat.is_final && (
                               <p className="text-xs text-muted-foreground">
                                 Esta categoria pode receber produtos
                               </p>
@@ -425,7 +425,7 @@ export default function ProductForm() {
                           </div>
                           
                           <div className="flex gap-2">
-                            {cat.is_Final ? (
+                            {cat.is_final ? (
                               <Button
                                 type="button"
                                 size="sm"

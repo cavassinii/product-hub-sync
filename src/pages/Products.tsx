@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -31,6 +30,8 @@ import {
 import { MercadoLivrePopup } from '@/components/MercadoLivrePopup';
 import { ShopeePopup } from '@/components/ShopeePopup';
 import { IntegrationDropdown } from '@/components/IntegrationDropdown';
+import { Brand } from '@/types/brand';
+import { Category } from '@/types/category';
 
 export default function Products() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -41,9 +42,13 @@ export default function Products() {
   const [showMercadoLivrePopup, setShowMercadoLivrePopup] = useState(false);
   const [showShopeePopup, setShowShopeePopup] = useState(false);
   const { toast } = useToast();
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
     loadProducts();
+    loadBrands();
+    loadCategories();
   }, []);
 
   useEffect(() => {
@@ -51,7 +56,8 @@ export default function Products() {
       const filtered = products.filter(product =>
         (product.title?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
         (product.sku?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-        (product.brand?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+        String(product.brand_id ?? '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(product.category_id ?? '').toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredProducts(filtered);
     } else {
@@ -73,6 +79,34 @@ export default function Products() {
       setProducts([]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadBrands = async () => {
+    try {
+      const data = await apiService.getBrands();
+      setBrands(data || []);
+    } catch (error) {
+      toast({
+        title: "Erro ao carregar marcas",
+        description: "Não foi possível carregar a lista de marcas.",
+        variant: "destructive",
+      });
+      setBrands([]);
+    }
+  };
+
+  const loadCategories = async () => {
+    try {
+      const data = await apiService.getCategories();
+      setCategories(data || []);
+    } catch (error) {
+      toast({
+        title: "Erro ao carregar categorias",
+        description: "Não foi possível carregar a lista de categorias.",
+        variant: "destructive",
+      });
+      setCategories([]);
     }
   };
 
@@ -189,8 +223,8 @@ export default function Products() {
                         </div>
                       </TableCell>
                       <TableCell className="font-mono text-sm">{product.sku}</TableCell>
-                      <TableCell>{product.brand}</TableCell>
-                      <TableCell>{product.category1}</TableCell>
+                      <TableCell>{brands.find(b => b.id === product.brand_id)?.name || '-'}</TableCell>
+                      <TableCell>{categories.find(c => c.id === product.category_id)?.name || '-'}</TableCell>
                       <TableCell>
                         <Badge variant={product.is_active ? "default" : "secondary"}>
                           {product.is_active ? 'Ativo' : 'Inativo'}

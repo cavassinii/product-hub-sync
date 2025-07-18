@@ -103,7 +103,7 @@ export function CategoryForm({ isOpen, onClose, category, onSave }: CategoryForm
   };
 
   const availableParentCategories = categories.filter(cat => 
-    cat.Id !== category?.Id && !cat.Is_Final
+    cat.id !== category?.id && !cat.is_Final
   );
 
   return (
@@ -120,8 +120,8 @@ export function CategoryForm({ isOpen, onClose, category, onSave }: CategoryForm
             <Label htmlFor="name">Nome *</Label>
             <Input
               id="name"
-              value={formData.Name || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, Name: e.target.value }))}
+              value={formData.name || ''}
+              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               placeholder="Nome da categoria"
               required
             />
@@ -130,10 +130,10 @@ export function CategoryForm({ isOpen, onClose, category, onSave }: CategoryForm
           <div className="space-y-2">
             <Label htmlFor="parent">Categoria Pai</Label>
             <Select
-              value={formData.Parent_Id?.toString() || ''}
+              value={formData.parent_Id?.toString() || ''}
               onValueChange={(value) => setFormData(prev => ({ 
                 ...prev, 
-                Parent_Id: value ? parseInt(value) : null 
+                parent_Id: value ? parseInt(value) : null 
               }))}
             >
               <SelectTrigger>
@@ -142,8 +142,8 @@ export function CategoryForm({ isOpen, onClose, category, onSave }: CategoryForm
               <SelectContent>
                 <SelectItem value="">Nenhuma (categoria raiz)</SelectItem>
                 {availableParentCategories.map((cat) => (
-                  <SelectItem key={cat.Id} value={cat.Id!.toString()}>
-                    {cat.Name}
+                  <SelectItem key={cat.id} value={cat.id!.toString()}>
+                    {cat.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -153,8 +153,8 @@ export function CategoryForm({ isOpen, onClose, category, onSave }: CategoryForm
           <div className="flex items-center space-x-2">
             <Switch
               id="is_final"
-              checked={formData.Is_Final}
-              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, Is_Final: checked }))}
+              checked={formData.is_Final}
+              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_Final: checked }))}
             />
             <Label htmlFor="is_final">Categoria final (permite produtos)</Label>
           </div>

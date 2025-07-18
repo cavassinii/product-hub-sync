@@ -6,14 +6,16 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, ChevronRight, ArrowLeft as BackIcon, Tag } from 'lucide-react';
 import { apiService } from '@/services/api';
 import { Product } from '@/types/product';
 import { useToast } from '@/hooks/use-toast';
 import { Brand } from '@/types/brand';
 import { Category } from '@/types/category';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { X } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 
 export default function ProductForm() {
   const { id } = useParams();
@@ -158,11 +160,20 @@ export default function ProductForm() {
     setCategoryPath(prev => prev.slice(0, -1));
   };
 
+  // Função para ir para uma categoria específica no breadcrumb
+  const handleBreadcrumbClick = (index: number) => {
+    setCategoryPath(prev => prev.slice(0, index + 1));
+  };
+
   // Função para selecionar a categoria final
   const handleSelectFinalCategory = (cat: Category) => {
     setFormData(prev => ({ ...prev, category_id: cat.id }));
     setCategoryPath([]);
     setShowCategoryModal(false);
+    toast({
+      title: "Categoria selecionada",
+      description: `Categoria "${cat.name}" foi selecionada com sucesso.`,
+    });
   };
 
   // Função para exibir o caminho da categoria
@@ -175,6 +186,17 @@ export default function ProductForm() {
       current = current.parent_Id ? categories.find(c => c.id === current.parent_Id) : undefined;
     }
     return path.join(' > ');
+  };
+
+  // Função para obter categorias do nível atual
+  const getCurrentLevelCategories = () => {
+    const currentParentId = categoryPath.length > 0 ? categoryPath[categoryPath.length - 1].id : null;
+    return getChildren(currentParentId);
+  };
+
+  // Função para formatar data
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR');
   };
 
   if (isLoadingProduct) {
@@ -300,55 +322,148 @@ export default function ProductForm() {
               </div>
               <div className="space-y-2">
                 <Label>Categoria *</Label>
-                <button
+                <Button
                   type="button"
-                  className="w-full border rounded px-3 py-2 text-left bg-white hover:bg-gray-50"
+                  variant="outline"
+                  className="w-full justify-start h-auto py-3 px-3"
                   onClick={openCategoryModal}
                 >
-                  {getCategoryPathLabel()}
-                </button>
+                  <div className="flex items-center gap-2 w-full">
+                    <Tag className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex-1 text-left">
+                      {formData.category_id ? (
+                        <div className="space-y-1">
+                          <div className="text-sm font-medium">{getCategoryPathLabel()}</div>
+                          <div className="text-xs text-muted-foreground">Clique para alterar</div>
+                        </div>
+                      ) : (
+                        <div className="text-muted-foreground">Selecione uma categoria</div>
+                      )}
+                    </div>
+                  </div>
+                </Button>
               </div>
             </div>
           </div>
 
           {/* Modal de seleção de categoria */}
           <Dialog open={showCategoryModal} onOpenChange={setShowCategoryModal}>
-            <DialogContent className="max-w-lg">
-              <DialogHeader>
-                <DialogTitle>Selecione a categoria</DialogTitle>
-                {categoryPath.length > 0 && (
-                  <button type="button" onClick={handleBack} className="absolute left-4 top-4 text-gray-400 hover:text-gray-600">
-                    <X className="h-5 w-5" /> Voltar
+            <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
+              <DialogHeader className="flex-shrink-0">
+                <DialogTitle className="flex items-center gap-2">
+                  <Tag className="h-5 w-5" />
+                  Selecionar Categoria
+                </DialogTitle>
+                
+                {/* Breadcrumb */}
+                <div className="flex items-center gap-1 text-sm text-muted-foreground mt-2">
+                  <button
+                    type="button"
+                    onClick={() => setCategoryPath([])}
+                    className="hover:text-foreground transition-colors px-2 py-1 rounded"
+                  >
+                    Início
                   </button>
-                )}
+                  {categoryPath.map((cat, index) => (
+                    <div key={cat.id} className="flex items-center gap-1">
+                      <ChevronRight className="h-3 w-3" />
+                      <button
+                        type="button"
+                        onClick={() => handleBreadcrumbClick(index)}
+                        className="hover:text-foreground transition-colors px-2 py-1 rounded"
+                      >
+                        {cat.name}
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </DialogHeader>
-              <div className="space-y-2">
-                {getChildren(categoryPath.length > 0 ? categoryPath[categoryPath.length - 1].id : null).map(cat => (
-                  <div key={cat.id} className="flex items-center justify-between border rounded px-3 py-2 mb-2">
-                    <span>{cat.name}</span>
-                    {cat.is_Final ? (
-                      <button
-                        type="button"
-                        className="text-primary font-semibold"
-                        onClick={() => handleSelectFinalCategory(cat)}
+
+              <Separator />
+
+              {/* Botão Voltar */}
+              {categoryPath.length > 0 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={handleBack}
+                  className="w-fit flex items-center gap-2"
+                >
+                  <BackIcon className="h-4 w-4" />
+                  Voltar
+                </Button>
+              )}
+
+              {/* Lista de categorias */}
+              <ScrollArea className="flex-1 pr-4">
+                <div className="space-y-2">
+                  {getCurrentLevelCategories().length > 0 ? (
+                    getCurrentLevelCategories().map(cat => (
+                      <div 
+                        key={cat.id} 
+                        className="border border-border rounded-lg p-4 hover:bg-accent/50 transition-colors"
                       >
-                        Selecionar
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        className="text-gray-500"
-                        onClick={() => handleCategoryClick(cat)}
-                      >
-                        Ver subcategorias
-                      </button>
-                    )}
-                  </div>
-                ))}
-                {getChildren(categoryPath.length > 0 ? categoryPath[categoryPath.length - 1].id : null).length === 0 && (
-                  <div className="text-center text-muted-foreground">Nenhuma subcategoria encontrada.</div>
-                )}
-              </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-medium">{cat.name}</h4>
+                              {cat.is_Final ? (
+                                <Badge variant="default" className="text-xs">
+                                  Final
+                                </Badge>
+                              ) : (
+                                <Badge variant="secondary" className="text-xs">
+                                  Categoria
+                                </Badge>
+                              )}
+                            </div>
+                            {cat.is_Final && (
+                              <p className="text-xs text-muted-foreground">
+                                Esta categoria pode receber produtos
+                              </p>
+                            )}
+                          </div>
+                          
+                          <div className="flex gap-2">
+                            {cat.is_Final ? (
+                              <Button
+                                type="button"
+                                size="sm"
+                                onClick={() => handleSelectFinalCategory(cat)}
+                                className="bg-primary hover:bg-primary/90"
+                              >
+                                Selecionar
+                              </Button>
+                            ) : (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleCategoryClick(cat)}
+                                className="flex items-center gap-1"
+                              >
+                                Ver subcategorias
+                                <ChevronRight className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <Tag className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                      <h3 className="font-medium text-muted-foreground">Nenhuma categoria encontrada</h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {categoryPath.length > 0 
+                          ? "Esta categoria não possui subcategorias." 
+                          : "Nenhuma categoria foi cadastrada ainda."
+                        }
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
             </DialogContent>
           </Dialog>
 

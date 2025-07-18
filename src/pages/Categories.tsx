@@ -13,6 +13,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Plus, Search, Edit, Trash2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { apiService } from '@/services/api';
 import { Category } from '@/types/category';
 import { useToast } from '@/hooks/use-toast';
@@ -27,15 +28,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { CategoryForm } from '@/components/CategoryForm';
 
 export default function Categories() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [showCategoryForm, setShowCategoryForm] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -93,33 +91,6 @@ export default function Categories() {
     return parent ? parent.name : 'Categoria não encontrada';
   };
 
-  const buildCategoryHierarchy = () => {
-    const hierarchy: Category[] = [];
-    const categoryMap = new Map<number, Category>();
-    
-    // First pass: create a map of all categories
-    categories.forEach(cat => {
-      if (cat.id) {
-        categoryMap.set(cat.id, { ...cat, children: [] });
-      }
-    });
-    
-    // Second pass: build the hierarchy
-    categoryMap.forEach(cat => {
-      if (cat.parent_Id && categoryMap.has(cat.parent_Id)) {
-        const parent = categoryMap.get(cat.parent_Id);
-        if (parent && !parent.children) {
-          parent.children = [];
-        }
-        parent?.children?.push(cat);
-      } else {
-        hierarchy.push(cat);
-      }
-    });
-    
-    return hierarchy;
-  };
-
   return (
     <>
       <CardHeader>
@@ -130,12 +101,11 @@ export default function Categories() {
               Gerencie as categorias dos produtos
             </p>
           </div>
-          <Button 
-            onClick={() => setShowCategoryForm(true)}
-            className="gradient-primary border-0 hover:opacity-90 transition-opacity"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Nova Categoria
+          <Button asChild className="gradient-primary border-0 hover:opacity-90 transition-opacity">
+            <Link to="/categories/new">
+              <Plus className="h-4 w-4 mr-2" />
+              Nova Categoria
+            </Link>
           </Button>
         </div>
       </CardHeader>
@@ -193,15 +163,10 @@ export default function Categories() {
                       <TableCell>{formatDate(category.created_At)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedCategory(category);
-                              setShowCategoryForm(true);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
+                          <Button variant="outline" size="sm" asChild>
+                            <Link to={`/categories/${category.id}`}>
+                              <Edit className="h-4 w-4" />
+                            </Link>
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
@@ -250,16 +215,6 @@ export default function Categories() {
           </div>
         )}
       </CardContent>
-
-      <CategoryForm
-        isOpen={showCategoryForm}
-        onClose={() => {
-          setShowCategoryForm(false);
-          setSelectedCategory(null);
-        }}
-        category={selectedCategory}
-        onSave={loadCategories}
-      />
     </>
   );
 }

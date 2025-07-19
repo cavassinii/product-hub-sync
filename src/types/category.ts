@@ -17,14 +17,14 @@ export interface CreateCategoryRequest {
   id: number;
   name: string;
   parent_id?: number | null;
-  is_Final: boolean;
+  is_final: boolean;
 }
 
 export interface UpdateCategoryRequest {
   id: number;
   name: string;
   parent_id?: number | null;
-  is_Final: boolean;
+  is_final: boolean;
 }
 
 // Tipo para resposta de listagem

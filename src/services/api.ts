@@ -130,29 +130,7 @@ class ApiService {
 
   async deleteCategory(id: number): Promise<CategoryResponse> {
     return this.request<CategoryResponse>(`/api/Categories/${id}`, {
-      method: 'POST',
-    });
-  }
-
-  // Subcategory endpoints
-  async getSubcategories(): Promise<any[]> {
-    return this.request<any[]>('/api/Subcategories');
-  }
-
-  async getSubcategory(id: number): Promise<any> {
-    return this.request<any>(`/api/Subcategories/${id}`);
-  }
-
-  async saveSubcategory(subcategory: any): Promise<CategoryResponse> {
-    return this.request<CategoryResponse>('/api/Subcategories', {
-      method: 'POST',
-      body: JSON.stringify(subcategory),
-    });
-  }
-
-  async deleteSubcategory(id: number): Promise<CategoryResponse> {
-    return this.request<CategoryResponse>(`/api/Subcategories/${id}`, {
-      method: 'POST',
+      method: 'DELETE',
     });
   }
 
@@ -174,7 +152,7 @@ class ApiService {
 
   async deleteBrand(id: number): Promise<BrandResponse> {
     return this.request<BrandResponse>(`/api/Brands/${id}`, {
-      method: 'POST',
+      method: 'DELETE',
     });
   }
 

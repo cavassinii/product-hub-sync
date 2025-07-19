@@ -146,7 +146,7 @@ export default function Brands() {
                       <TableCell>
                         <p className="font-medium">{brand.name}</p>
                       </TableCell>
-                                              <TableCell>{formatDate(brand.created_At)}</TableCell>
+                                              <TableCell>{formatDate(brand.created_at)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end space-x-2">
                           <Button

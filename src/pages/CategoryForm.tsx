@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -33,18 +32,37 @@ export default function CategoryForm() {
   const { id } = useParams();
   const isEditing = !!id;
 
+  // Resetar formulário ao entrar em modo criação
+  useEffect(() => {
+    if (!isEditing) {
+      setFormData({
+        name: '',
+        parent_id: null,
+        is_final: true,
+      });
+    }
+  }, [isEditing]);
+
+  // Carrega categorias apenas uma vez
   useEffect(() => {
     loadCategories();
+  }, []);
+
+  // Carrega dados da categoria se for edição
+  useEffect(() => {
     if (isEditing && id) {
-      loadCategory(parseInt(id));
+      loadCategory(Number(id));
     }
   }, [isEditing, id]);
 
   const loadCategories = async () => {
     try {
       setIsLoadingCategories(true);
-      const data = await apiService.getCategories();
-      setCategories(data);
+      const data: any = await apiService.getCategories();
+      const list = Array.isArray(data)
+        ? data
+        : (data && Array.isArray(data.data) ? data.data : []);
+      setCategories(list);
     } catch (error) {
       console.error('Erro ao carregar categorias:', error);
       toast({
@@ -73,7 +91,7 @@ export default function CategoryForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name?.trim()) {
       toast({
         title: "Erro de validação",
@@ -85,21 +103,21 @@ export default function CategoryForm() {
 
     try {
       setIsLoading(true);
-      
+
       const categoryData = {
         ...formData,
-        id: isEditing ? parseInt(id!) : 0,
+        id: isEditing ? Number(id) : 0,
       } as Category;
 
       await apiService.saveCategory(categoryData);
-      
+
       toast({
         title: isEditing ? "Categoria atualizada" : "Categoria criada",
-        description: isEditing 
-          ? "A categoria foi atualizada com sucesso." 
+        description: isEditing
+          ? "A categoria foi atualizada com sucesso."
           : "A categoria foi criada com sucesso.",
       });
-      
+
       navigate('/categories');
     } catch (error) {
       toast({
@@ -116,14 +134,22 @@ export default function CategoryForm() {
     navigate('/categories');
   };
 
-  const availableParentCategories = categories.filter(cat => 
-    cat.id !== formData.id && !cat.is_final
+  const availableParentCategories = categories.filter(cat =>
+    Number.isInteger(cat.id) && !cat.is_final && (!formData.id || cat.id !== formData.id)
   );
+
+  // Corrigido: sempre retorna string ou ""
+  const parentValue = formData.parent_id != null ? String(formData.parent_id) : "";
+  const validParentIds = availableParentCategories.map(cat => String(cat.id));
+  const safeParentValue = validParentIds.includes(parentValue) ? parentValue : "";
+  console.log('availableParentCategories', availableParentCategories);
+  console.log('parentValue', parentValue);
+  console.log('safeParentValue', safeParentValue);
 
   const getParentCategoryName = (parentId?: number | null) => {
     if (!parentId) return null;
     const parent = categories.find(cat => cat.id === parentId);
-    return parent ? parent.name : null;
+    return parent ? parent.name : 'Categoria não encontrada';
   };
 
   const getCategoryIcon = (isFinal: boolean) => {
@@ -141,7 +167,7 @@ export default function CategoryForm() {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar para Categorias
         </Button>
-        
+
         <div className="flex items-center space-x-3">
           <FolderTree className="h-8 w-8 text-primary" />
           <div>
@@ -178,51 +204,61 @@ export default function CategoryForm() {
               />
             </div>
 
-            {/* Categoria Pai */}
+            {/* Categoria Pai
             <div className="space-y-2">
               <Label htmlFor="parent" className="text-sm font-medium">
                 Categoria Pai
               </Label>
-              <Select
-                value={formData.parent_id?.toString() || ''}
-                onValueChange={(value) => setFormData(prev => ({ 
-                  ...prev, 
-                  parent_id: value ? parseInt(value) : null 
-                }))}
-                disabled={isLoadingCategories}
-              >
-                <SelectTrigger className="h-11">
-                  <SelectValue placeholder="Selecione uma categoria pai (opcional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">
-                    <div className="flex items-center space-x-2">
-                      <FolderTree className="h-4 w-4" />
-                      <span>Nenhuma (categoria raiz)</span>
+              {isLoadingCategories ? (
+                <div className="text-muted-foreground text-sm p-2">Carregando categorias...</div>
+              ) : (
+                <>
+                  {availableParentCategories.length === 0 ? (
+                    <div className="text-muted-foreground text-sm p-2">
+                      Nenhuma categoria intermediária disponível para seleção como pai.
                     </div>
-                  </SelectItem>
-                  {availableParentCategories
-                    .filter(cat => typeof cat.id === 'number' && cat.id > 0)
-                    .map((cat) => {
-                      const Icon = getCategoryIcon(cat.is_final);
-                      return (
-                        <SelectItem key={cat.id} value={cat.id.toString()}>
+                  ) : (
+                    <Select
+                      value={safeParentValue}
+                      onValueChange={(value) => setFormData(prev => ({
+                        ...prev,
+                        parent_id: value ? parseInt(value) : null
+                      }))}
+                      disabled={isLoadingCategories}
+                    >
+                      <SelectTrigger className="h-11">
+                        <SelectValue placeholder="Selecione uma categoria pai (opcional)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">
                           <div className="flex items-center space-x-2">
-                            <Icon className="h-4 w-4" />
-                            <span>{cat.name}</span>
-                            <Badge variant="outline" className="ml-auto">
-                              Intermediária
-                            </Badge>
+                            <FolderTree className="h-4 w-4" />
+                            <span>Nenhuma (categoria raiz)</span>
                           </div>
                         </SelectItem>
-                      );
-                    })}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">
-                Apenas categorias intermediárias podem ser selecionadas como pai
-              </p>
-            </div>
+                        {availableParentCategories.map((cat) => {
+                          const Icon = getCategoryIcon(cat.is_final);
+                          return (
+                            <SelectItem key={cat.id} value={String(cat.id)}>
+                              <div className="flex items-center space-x-2">
+                                <Icon className="h-4 w-4" />
+                                <span>{cat.name}</span>
+                                <Badge variant="outline" className="ml-auto">
+                                  Intermediária
+                                </Badge>
+                              </div>
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Apenas categorias intermediárias podem ser selecionadas como pai
+                  </p>
+                </>
+              )}
+            </div> */}
 
             {/* Preview da Hierarquia */}
             {formData.parent_id && (
@@ -256,17 +292,13 @@ export default function CategoryForm() {
                 </div>
                 <Switch
                   id="is_final"
-                  checked={formData.is_final}
+                  checked={!!formData.is_final}
                   onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_final: checked }))}
                 />
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className={`p-4 rounded-lg border-2 transition-colors ${
-                  formData.is_final 
-                    ? 'border-primary bg-primary/5' 
-                    : 'border-muted bg-muted/30'
-                }`}>
+                <div className={`p-4 rounded-lg border-2 transition-colors ${formData.is_final ? 'border-primary bg-primary/5' : 'border-muted bg-muted/30'}`}>
                   <div className="flex items-center space-x-2 mb-2">
                     <FileText className="h-4 w-4" />
                     <span className="font-medium">Categoria Final</span>
@@ -278,12 +310,8 @@ export default function CategoryForm() {
                     Permite adicionar produtos diretamente
                   </p>
                 </div>
-                
-                <div className={`p-4 rounded-lg border-2 transition-colors ${
-                  !formData.is_final 
-                    ? 'border-primary bg-primary/5' 
-                    : 'border-muted bg-muted/30'
-                }`}>
+
+                <div className={`p-4 rounded-lg border-2 transition-colors ${!formData.is_final ? 'border-primary bg-primary/5' : 'border-muted bg-muted/30'}`}>
                   <div className="flex items-center space-x-2 mb-2">
                     <Folder className="h-4 w-4" />
                     <span className="font-medium">Categoria Intermediária</span>
@@ -300,17 +328,17 @@ export default function CategoryForm() {
 
             {/* Botões de Ação */}
             <div className="flex justify-end space-x-3 pt-6">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={handleCancel} 
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
                 disabled={isLoading}
                 className="w-24"
               >
                 Cancelar
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={isLoading}
                 className="w-32"
               >

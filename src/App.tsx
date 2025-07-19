@@ -11,7 +11,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
 import Categories from "./pages/Categories";
-import CategoryForm from "./pages/CategoryForm";
+
 import Brands from "./pages/Brands";
 import ProductForm from "./pages/ProductForm";
 import NotFound from "./pages/NotFound";
@@ -63,26 +63,6 @@ const App = () => (
                 <ProtectedRoute>
                   <Layout>
                     <Categories />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/categories/new"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <CategoryForm />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/categories/:id"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <CategoryForm />
                   </Layout>
                 </ProtectedRoute>
               }

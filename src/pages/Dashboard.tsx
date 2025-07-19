@@ -214,7 +214,7 @@ export default function Dashboard() {
                             )}
                             <div>
                               <p className="font-medium">{product.title}</p>
-                              <p className="text-sm text-muted-foreground">{product.brandName || 'N/A'}</p>
+                              <p className="text-sm text-muted-foreground">Marca ID: {product.brand_id || 'N/A'}</p>
                             </div>
                           </div>
                           <Badge variant={product.is_active ? "default" : "secondary"}>

@@ -204,61 +204,106 @@ export default function CategoryForm() {
               />
             </div>
 
-            {/* Categoria Pai
-            <div className="space-y-2">
-              <Label htmlFor="parent" className="text-sm font-medium">
-                Categoria Pai
-              </Label>
+            {/* Categoria Pai */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="parent" className="text-sm font-medium">
+                  Categoria Pai (Opcional)
+                </Label>
+                <Badge variant="outline" className="text-xs">
+                  Organização Hierárquica
+                </Badge>
+              </div>
+              
               {isLoadingCategories ? (
-                <div className="text-muted-foreground text-sm p-2">Carregando categorias...</div>
+                <div className="flex items-center space-x-2 p-3 bg-muted/50 rounded-lg">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span className="text-sm text-muted-foreground">Carregando categorias disponíveis...</span>
+                </div>
               ) : (
                 <>
-                  {availableParentCategories.length === 0 ? (
-                    <div className="text-muted-foreground text-sm p-2">
-                      Nenhuma categoria intermediária disponível para seleção como pai.
-                    </div>
-                  ) : (
-                    <Select
-                      value={safeParentValue}
-                      onValueChange={(value) => setFormData(prev => ({
-                        ...prev,
-                        parent_id: value ? parseInt(value) : null
-                      }))}
-                      disabled={isLoadingCategories}
-                    >
-                      <SelectTrigger className="h-11">
-                        <SelectValue placeholder="Selecione uma categoria pai (opcional)" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">
+                  <Select
+                    value={safeParentValue}
+                    onValueChange={(value) => setFormData(prev => ({
+                      ...prev,
+                      parent_id: value ? parseInt(value) : null
+                    }))}
+                    disabled={isLoadingCategories}
+                  >
+                    <SelectTrigger className="h-12 border-2 hover:border-primary/50 transition-colors">
+                      <SelectValue>
+                        {safeParentValue ? (
                           <div className="flex items-center space-x-2">
-                            <FolderTree className="h-4 w-4" />
-                            <span>Nenhuma (categoria raiz)</span>
+                            <Folder className="h-4 w-4 text-primary" />
+                            <span>{availableParentCategories.find(cat => String(cat.id) === safeParentValue)?.name}</span>
+                            <Badge variant="secondary" className="text-xs">Intermediária</Badge>
                           </div>
-                        </SelectItem>
-                        {availableParentCategories.map((cat) => {
-                          const Icon = getCategoryIcon(cat.is_final);
-                          return (
-                            <SelectItem key={cat.id} value={String(cat.id)}>
-                              <div className="flex items-center space-x-2">
-                                <Icon className="h-4 w-4" />
-                                <span>{cat.name}</span>
-                                <Badge variant="outline" className="ml-auto">
-                                  Intermediária
-                                </Badge>
+                        ) : (
+                          <div className="flex items-center space-x-2 text-muted-foreground">
+                            <FolderTree className="h-4 w-4" />
+                            <span>Selecione uma categoria pai</span>
+                          </div>
+                        )}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                      <SelectItem value="" className="py-3">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                            <FolderTree className="h-4 w-4 text-primary" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-medium">Categoria Raiz</div>
+                            <div className="text-xs text-muted-foreground">Esta será uma categoria de nível superior</div>
+                          </div>
+                        </div>
+                      </SelectItem>
+                      
+                      {availableParentCategories.length === 0 ? (
+                        <div className="p-4 text-center">
+                          <Folder className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                          <p className="text-sm text-muted-foreground">Nenhuma categoria intermediária disponível</p>
+                          <p className="text-xs text-muted-foreground mt-1">Crie primeiro categorias intermediárias para usá-las como pai</p>
+                        </div>
+                      ) : (
+                        availableParentCategories.map((cat) => (
+                          <SelectItem key={cat.id} value={String(cat.id)} className="py-3">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center">
+                                <Folder className="h-4 w-4 text-secondary-foreground" />
                               </div>
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                  )}
-                  <p className="text-xs text-muted-foreground">
-                    Apenas categorias intermediárias podem ser selecionadas como pai
-                  </p>
+                              <div className="flex-1">
+                                <div className="font-medium">{cat.name}</div>
+                                <div className="text-xs text-muted-foreground">Categoria intermediária • Pode ter subcategorias</div>
+                              </div>
+                              <Badge variant="outline" className="text-xs">
+                                Intermediária
+                              </Badge>
+                            </div>
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-start space-x-2">
+                      <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center mt-0.5">
+                        <span className="text-blue-600 text-xs font-medium">i</span>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm text-blue-800 font-medium">Como funciona a hierarquia?</p>
+                        <ul className="text-xs text-blue-700 mt-1 space-y-1">
+                          <li>• <strong>Categoria Raiz:</strong> Nível superior, sem categoria pai</li>
+                          <li>• <strong>Subcategoria:</strong> Pertence a uma categoria intermediária</li>
+                          <li>• <strong>Apenas categorias intermediárias</strong> podem ser selecionadas como pai</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
                 </>
               )}
-            </div> */}
+            </div>
 
             {/* Preview da Hierarquia */}
             {formData.parent_id && (

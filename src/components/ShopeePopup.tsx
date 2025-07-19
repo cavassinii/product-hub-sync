@@ -72,7 +72,7 @@ export function ShopeePopup({ product, isOpen, onClose }: ShopeePopupProps) {
               <div>
                 <h4 className="font-medium">{product.title}</h4>
                 <p className="text-sm text-muted-foreground">SKU: {product.sku}</p>
-                <p className="text-sm text-muted-foreground">Marca: {product.brand}</p>
+                <p className="text-sm text-muted-foreground">Marca: {product.brandName || 'N/A'}</p>
               </div>
             </div>
           </div>

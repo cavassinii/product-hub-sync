@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Save, ChevronRight, ArrowLeft as BackIcon, Tag } from 'lucide-react';
+import { ArrowLeft, Save, ChevronRight, ArrowLeft as BackIcon, Tag, Search } from 'lucide-react';
 import { apiService } from '@/services/api';
 import { Product } from '@/types/product';
 import { useToast } from '@/hooks/use-toast';
@@ -56,6 +56,8 @@ export default function ProductForm() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [categoryPath, setCategoryPath] = useState<Category[]>([]);
+  const [showBrandModal, setShowBrandModal] = useState(false);
+  const [brandSearch, setBrandSearch] = useState('');
 
   useEffect(() => {
     if (isEditing) {
@@ -194,6 +196,29 @@ export default function ProductForm() {
     return getChildren(currentParentId);
   };
 
+  // Função para abrir o modal de marcas
+  const openBrandModal = () => {
+    setBrandSearch('');
+    setShowBrandModal(true);
+  };
+
+  // Função para selecionar uma marca
+  const handleSelectBrand = (brand: Brand) => {
+    setFormData(prev => ({ ...prev, brand_id: brand.id }));
+    setShowBrandModal(false);
+    toast({
+      title: 'Marca selecionada',
+      description: `Marca "${brand.name}" foi selecionada com sucesso.`,
+    });
+  };
+
+  // Função para exibir o nome da marca selecionada
+  const getSelectedBrandName = () => {
+    if (!formData.brand_id) return 'Selecione uma marca';
+    const brand = brands.find(b => b.id === formData.brand_id);
+    return brand ? brand.name : 'Selecione uma marca';
+  };
+
   // Função para formatar data
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
@@ -307,18 +332,22 @@ export default function ProductForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="brand_id">Marca *</Label>
-                <select
-                  id="brand_id"
-                  value={formData.brand_id || ''}
-                  onChange={e => setFormData(prev => ({ ...prev, brand_id: Number(e.target.value) }))}
-                  required
-                  className="w-full border rounded px-3 py-2"
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full justify-start h-auto py-3 px-3"
+                  onClick={openBrandModal}
                 >
-                  <option value="">Selecione uma marca</option>
-                  {brands.map(brand => (
-                    <option key={brand.id} value={brand.id}>{brand.name}</option>
-                  ))}
-                </select>
+                  <div className="flex items-center gap-2 w-full">
+                    <Tag className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex-1 text-left">
+                      <div className="text-sm font-medium">
+                        {formData.brand_id ? getSelectedBrandName() : 'Selecione uma marca'}
+                      </div>
+                      <div className="text-xs text-muted-foreground">Clique para alterar</div>
+                    </div>
+                  </div>
+                </Button>
               </div>
               <div className="space-y-2">
                 <Label>Categoria *</Label>
@@ -331,14 +360,10 @@ export default function ProductForm() {
                   <div className="flex items-center gap-2 w-full">
                     <Tag className="h-4 w-4 text-muted-foreground" />
                     <div className="flex-1 text-left">
-                      {formData.category_id ? (
-                        <div className="space-y-1">
-                          <div className="text-sm font-medium">{getCategoryPathLabel()}</div>
-                          <div className="text-xs text-muted-foreground">Clique para alterar</div>
-                        </div>
-                      ) : (
-                        <div className="text-muted-foreground">Selecione uma categoria</div>
-                      )}
+                      <div className="text-sm font-medium">
+                        {formData.category_id ? getCategoryPathLabel() : 'Selecione uma categoria'}
+                      </div>
+                      <div className="text-xs text-muted-foreground">Clique para alterar</div>
                     </div>
                   </div>
                 </Button>
@@ -460,6 +485,54 @@ export default function ProductForm() {
                           : "Nenhuma categoria foi cadastrada ainda."
                         }
                       </p>
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            </DialogContent>
+          </Dialog>
+
+          {/* Modal de seleção de marca */}
+          <Dialog open={showBrandModal} onOpenChange={setShowBrandModal}>
+            <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
+              <DialogHeader className="flex-shrink-0">
+                <DialogTitle className="flex items-center gap-2">
+                  <Tag className="h-5 w-5" />
+                  Selecionar Marca
+                </DialogTitle>
+              </DialogHeader>
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Buscar marca pelo nome..."
+                  value={brandSearch}
+                  onChange={e => setBrandSearch(e.target.value)}
+                  className="pl-10 h-11"
+                  autoFocus
+                />
+              </div>
+              <ScrollArea className="flex-1 pr-4">
+                <div className="space-y-2">
+                  {brands.filter(b => b.name.toLowerCase().includes(brandSearch.toLowerCase())).length > 0 ? (
+                    brands.filter(b => b.name.toLowerCase().includes(brandSearch.toLowerCase())).map(brand => (
+                      <div
+                        key={brand.id}
+                        className={`border border-border rounded-lg p-3 flex items-center justify-between hover:bg-accent/50 transition-colors ${formData.brand_id === brand.id ? 'bg-accent/30' : ''}`}
+                      >
+                        <span className="font-medium">{brand.name}</span>
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => handleSelectBrand(brand)}
+                          className="bg-primary hover:bg-primary/90"
+                        >
+                          Selecionar
+                        </Button>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      Nenhuma marca encontrada
                     </div>
                   )}
                 </div>

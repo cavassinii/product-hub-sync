@@ -46,23 +46,25 @@ export function CategoryForm({ isOpen, onClose, onSave, category, parentId }: Ca
 
   useEffect(() => {
     if (isOpen) {
-      loadCategories();
-      
-      if (category) {
-        setFormData({
-          id: category.id,
-          name: category.name,
-          parent_id: category.parent_id,
-          is_final: category.is_final,
-        });
-      } else {
-        setFormData({
-          id: 0,
-          name: '',
-          parent_id: parentId || null,
-          is_final: false,
-        });
-      }
+      const fetchAndSet = async () => {
+        await loadCategories();
+        if (category) {
+          setFormData({
+            id: category.id,
+            name: category.name,
+            parent_id: category.parent_id,
+            is_final: category.is_final,
+          });
+        } else {
+          setFormData({
+            id: 0,
+            name: '',
+            parent_id: parentId || null,
+            is_final: false,
+          });
+        }
+      };
+      fetchAndSet();
     }
   }, [isOpen, category, parentId]);
 
@@ -100,7 +102,7 @@ export function CategoryForm({ isOpen, onClose, onSave, category, parentId }: Ca
       const categoryData = {
         id: formData.id,
         name: formData.name.trim(),
-        parent_id: formData.parent_id,
+        parent_id: parentId || null,
         is_final: formData.is_final,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -194,41 +196,17 @@ export function CategoryForm({ isOpen, onClose, onSave, category, parentId }: Ca
             />
           </div>
 
-          {/* Categoria pai */}
+          {/* Categoria pai (apenas exibição, não editável) */}
           <div className="space-y-2">
-            <Label htmlFor="parent">Categoria Pai</Label>
-            <Select
-              value={formData.parent_id?.toString() || ''}
-              onValueChange={(value) => setFormData(prev => ({ 
-                ...prev, 
-                parent_id: value ? parseInt(value) : null 
-              }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione uma categoria pai (opcional)" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Nenhuma (categoria raiz)</SelectItem>
-                {isLoading ? (
-                  <SelectItem value="" disabled>
-                    Carregando categorias...
-                  </SelectItem>
-                ) : (
-                  availableParentCategories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id.toString()}>
-                      <div className="flex items-center justify-between w-full">
-                        <span>{getParentCategoryPath(cat.id) || cat.name}</span>
-                        <Badge variant="outline" className="ml-2 text-xs">
-                          Intermediária
-                        </Badge>
-                      </div>
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
+            <Label>Categoria Pai</Label>
+            <Input
+              value={getParentCategoryPath(formData.parent_id) || 'Nenhuma (categoria raiz)'}
+              readOnly
+              disabled
+              className="bg-muted/50 cursor-not-allowed"
+            />
             <p className="text-xs text-muted-foreground">
-              Deixe vazio para criar uma categoria principal
+              A categoria pai é definida pela listagem atual e não pode ser alterada aqui.
             </p>
           </div>
 

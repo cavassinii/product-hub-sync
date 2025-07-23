@@ -129,7 +129,7 @@ export default function Brands() {
               <TableHeader>
                 <TableRow className="bg-muted/50">
                   <TableHead>Nome</TableHead>
-                  <TableHead>Criado em</TableHead>
+                  <TableHead>Atualizado em</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -146,7 +146,7 @@ export default function Brands() {
                       <TableCell>
                         <p className="font-medium">{brand.name}</p>
                       </TableCell>
-                                              <TableCell>{formatDate(brand.created_at)}</TableCell>
+                                              <TableCell>{formatDate(brand.updated_at)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end space-x-2">
                           <Button

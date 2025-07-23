@@ -277,7 +277,7 @@ export default function Categories() {
                   <TableHead>Nome</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Subcategorias</TableHead>
-                  <TableHead>Criado em</TableHead>
+                  <TableHead>Atualizado em</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -324,7 +324,7 @@ export default function Categories() {
                             </Button>
                           )}
                         </TableCell>
-                        <TableCell>{formatDate(category.created_at)}</TableCell>
+                        <TableCell>{formatDate(category.updated_at)}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end space-x-2">
                             <Button 

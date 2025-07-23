@@ -3,6 +3,7 @@ import { LoginRequest, AuthResponse } from '@/types/auth';
 import { Product, ProductResponse } from '@/types/product';
 import { Category, CategoryResponse } from '@/types/category';
 import { Brand, BrandResponse } from '@/types/brand';
+import { CategoryChannel, MercadoLivreCategory, SaveCategoryChannelRequest } from '@/types/marketplace';
 import md5 from 'md5';
 
 const API_BASE_URL = 'https://localhost:7020';
@@ -159,6 +160,28 @@ class ApiService {
   // Mercado Livre categories
   async getMercadoLivreCategories(): Promise<any[]> {
     return this.request<any[]>('/api/MercadoLivre/categories');
+  }
+
+  // Category Channels endpoints
+  async getCategoryChannel(categoryId: number, channelId: number): Promise<CategoryChannel | null> {
+    try {
+      return await this.request<CategoryChannel>(`/api/CategoriesChannels/GetByCategoryAndChannel?categoryId=${categoryId}&channelId=${channelId}`);
+    } catch (error) {
+      // Se retornar 404, significa que não existe vínculo
+      return null;
+    }
+  }
+
+  async saveCategoryChannel(data: SaveCategoryChannelRequest): Promise<any> {
+    return this.request<any>('/api/CategoriesChannels/SaveCategoryChannel', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Mercado Livre category tree
+  async getMercadoLivreCategoryTree(): Promise<MercadoLivreCategory> {
+    return this.request<MercadoLivreCategory>('/api/MercadoLivre/GetCategoryTree');
   }
 }
 

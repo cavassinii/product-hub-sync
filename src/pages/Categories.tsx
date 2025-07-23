@@ -20,9 +20,10 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { Plus, Search, Edit, Trash2, FolderOpen, ArrowLeft } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, FolderOpen, ArrowLeft, Link2, CheckCircle, Package } from 'lucide-react';
 import { apiService } from '@/services/api';
 import { Category } from '@/types/category';
+import { CategoryChannel, MercadoLivreCategory, CHANNELS } from '@/types/marketplace';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -36,6 +37,8 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { CategoryForm } from '@/components/CategoryForm';
+import { MarketplaceSelectionModal } from '@/components/MarketplaceSelectionModal';
+import { MercadoLivreCategoryTree } from '@/components/MercadoLivreCategoryTree';
 
 interface BreadcrumbItem {
   id: number;
@@ -52,6 +55,13 @@ export default function Categories() {
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  
+  // Marketplace integration states
+  const [categoryChannels, setCategoryChannels] = useState<Map<number, CategoryChannel>>(new Map());
+  const [isMarketplaceModalOpen, setIsMarketplaceModalOpen] = useState(false);
+  const [isMercadoLivreTreeOpen, setIsMercadoLivreTreeOpen] = useState(false);
+  const [selectedCategoryForMarketplace, setSelectedCategoryForMarketplace] = useState<Category | null>(null);
+  
   const { toast } = useToast();
 
   useEffect(() => {
@@ -61,6 +71,12 @@ export default function Categories() {
   useEffect(() => {
     filterCategories();
   }, [allCategories, currentParentId, searchTerm]);
+
+  useEffect(() => {
+    if (filteredCategories.length > 0) {
+      loadCategoryChannels();
+    }
+  }, [filteredCategories]);
 
   const loadCategories = async () => {
     try {
@@ -75,6 +91,23 @@ export default function Categories() {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadCategoryChannels = async () => {
+    try {
+      const channelsMap = new Map<number, CategoryChannel>();
+      
+      for (const category of filteredCategories) {
+        const channel = await apiService.getCategoryChannel(category.id, CHANNELS.MERCADO_LIVRE);
+        if (channel) {
+          channelsMap.set(category.id, channel);
+        }
+      }
+      
+      setCategoryChannels(channelsMap);
+    } catch (error) {
+      console.error('Erro ao carregar vínculos de marketplace:', error);
     }
   };
 
@@ -174,6 +207,51 @@ export default function Categories() {
   const getCurrentLevelName = () => {
     if (breadcrumbs.length === 0) return 'Categorias Principais';
     return `Subcategorias de "${breadcrumbs[breadcrumbs.length - 1].name}"`;
+  };
+
+  const handleLinkMarketplace = (category: Category) => {
+    setSelectedCategoryForMarketplace(category);
+    setIsMarketplaceModalOpen(true);
+  };
+
+  const handleSelectMarketplace = (channelId: number) => {
+    if (channelId === CHANNELS.MERCADO_LIVRE) {
+      setIsMercadoLivreTreeOpen(true);
+    }
+  };
+
+  const handleSelectMercadoLivreCategory = async (mlCategory: MercadoLivreCategory) => {
+    if (!selectedCategoryForMarketplace) return;
+
+    try {
+      await apiService.saveCategoryChannel({
+        category_channel_id: '', // Vazio para criar novo
+        category_id: selectedCategoryForMarketplace.id,
+        channel_id: CHANNELS.MERCADO_LIVRE
+      });
+
+      toast({
+        title: "Vínculo criado com sucesso",
+        description: `Categoria "${selectedCategoryForMarketplace.name}" foi vinculada ao Mercado Livre.`,
+      });
+
+      // Recarregar os vínculos
+      await loadCategoryChannels();
+      
+      // Fechar modais
+      setIsMercadoLivreTreeOpen(false);
+      setSelectedCategoryForMarketplace(null);
+    } catch (error) {
+      toast({
+        title: "Erro ao vincular categoria",
+        description: "Não foi possível vincular a categoria ao marketplace.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const isLinkedToMercadoLivre = (categoryId: number) => {
+    return categoryChannels.has(categoryId);
   };
 
   return (
@@ -276,6 +354,7 @@ export default function Categories() {
                 <TableRow className="bg-muted/50">
                   <TableHead>Nome</TableHead>
                   <TableHead>Tipo</TableHead>
+                  <TableHead>Marketplaces</TableHead>
                   <TableHead>Subcategorias</TableHead>
                   <TableHead>Atualizado em</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
@@ -284,7 +363,7 @@ export default function Categories() {
               <TableBody>
                 {filteredCategories.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
                       {searchTerm ? 'Nenhuma categoria encontrada' : 'Nenhuma categoria cadastrada neste nível'}
                     </TableCell>
                   </TableRow>
@@ -308,6 +387,26 @@ export default function Categories() {
                           <Badge variant={category.is_final ? "default" : "secondary"}>
                             {category.is_final ? 'Final' : 'Intermediária'}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            {isLinkedToMercadoLivre(category.id) ? (
+                              <div className="flex items-center space-x-1 text-green-600">
+                                <CheckCircle className="h-4 w-4" />
+                                <span className="text-sm">ML</span>
+                              </div>
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleLinkMarketplace(category)}
+                                className="flex items-center space-x-1 text-muted-foreground hover:text-primary"
+                              >
+                                <Link2 className="h-4 w-4" />
+                                <span className="text-sm">Vincular</span>
+                              </Button>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell>
                           {category.is_final ? (
@@ -390,6 +489,28 @@ export default function Categories() {
         onSave={handleFormSave}
         category={editingCategory}
         parentId={currentParentId}
+      />
+
+      {/* Marketplace Selection Modal */}
+      <MarketplaceSelectionModal
+        isOpen={isMarketplaceModalOpen}
+        onClose={() => {
+          setIsMarketplaceModalOpen(false);
+          setSelectedCategoryForMarketplace(null);
+        }}
+        onSelectMarketplace={handleSelectMarketplace}
+        categoryName={selectedCategoryForMarketplace?.name || ''}
+      />
+
+      {/* Mercado Livre Category Tree Modal */}
+      <MercadoLivreCategoryTree
+        isOpen={isMercadoLivreTreeOpen}
+        onClose={() => {
+          setIsMercadoLivreTreeOpen(false);
+          setSelectedCategoryForMarketplace(null);
+        }}
+        onSelectCategory={handleSelectMercadoLivreCategory}
+        categoryName={selectedCategoryForMarketplace?.name || ''}
       />
     </>
   );

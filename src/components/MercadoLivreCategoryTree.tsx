@@ -12,8 +12,9 @@ import { useToast } from '@/hooks/use-toast';
 interface MercadoLivreCategoryTreeProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelectCategory: (mlCategory: MercadoLivreCategory) => void;
   categoryName: string;
+  categoryId?: number; // NOVO: id da categoria interna
+  onLinked?: () => void | Promise<void>; // NOVO
 }
 
 interface TreeNodeProps {
@@ -114,26 +115,33 @@ function hasMatchingDescendants(category: MercadoLivreCategory, searchTerm: stri
 export function MercadoLivreCategoryTree({ 
   isOpen, 
   onClose, 
-  onSelectCategory, 
-  categoryName 
+  categoryName,
+  categoryId,
+  onLinked,
 }: MercadoLivreCategoryTreeProps) {
-  const [categoryTree, setCategoryTree] = useState<MercadoLivreCategory | null>(null);
+  const [categoryTree, setCategoryTree] = useState<MercadoLivreCategory | MercadoLivreCategory[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<MercadoLivreCategory | null>(null);
   const { toast } = useToast();
+  const [isConfirming, setIsConfirming] = useState(false); // Para loading do botão
 
   useEffect(() => {
-    if (isOpen && !categoryTree) {
+    if (isOpen) {
+      console.log('MercadoLivreCategoryTree modal opened');
+      setCategoryTree(null); // Limpa a árvore sempre que abrir
+      setIsLoading(true);    // Mostra loading imediatamente
       loadCategoryTree();
     }
   }, [isOpen]);
 
   const loadCategoryTree = async () => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
+      console.log('Fetching ML category tree...');
       const data = await apiService.getMercadoLivreCategoryTree();
       setCategoryTree(data);
+      console.log('ML category tree loaded:', data);
     } catch (error) {
       toast({
         title: "Erro ao carregar categorias",
@@ -149,10 +157,48 @@ export function MercadoLivreCategoryTree({
     setSelectedCategory(mlCategory);
   };
 
-  const handleConfirmSelection = () => {
-    if (selectedCategory) {
-      onSelectCategory(selectedCategory);
+  const handleConfirmSelection = async () => {
+    if (!selectedCategory || !categoryId) {
+      console.warn('handleConfirmSelection: selectedCategory or categoryId is missing', { selectedCategory, categoryId });
+      toast({
+        title: "Seleção inválida",
+        description: "Selecione uma categoria do Mercado Livre e tente novamente.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsConfirming(true);
+    console.debug('Iniciando requisição saveCategoryChannel', {
+      category_channel_id: selectedCategory.mlId,
+      category_id: categoryId,
+      channel_id: 1,
+      selectedCategory,
+    });
+    try {
+      const response = await apiService.saveCategoryChannel({
+        category_channel_id: selectedCategory.mlId, // ou outro valor se necessário
+        category_id: categoryId,
+        channel_id: 1, // ou CHANNELS.MERCADO_LIVRE, se definido
+      });
+      console.debug('saveCategoryChannel: sucesso', response);
+      toast({
+        title: "Vínculo criado com sucesso",
+        description: `Categoria vinculada ao Mercado Livre.`,
+      });
+      if (onLinked) await onLinked(); // CHAME O CALLBACK AQUI!
+      setSelectedCategory(null);
       onClose();
+    } catch (error) {
+      console.error('saveCategoryChannel: erro', error);
+      toast({
+        title: "Erro ao vincular categoria",
+        description: "Não foi possível vincular a categoria ao marketplace.",
+        variant: "destructive",
+      });
+      // Feche o modal mesmo em caso de erro, se desejar:
+      onClose();
+    } finally {
+      setIsConfirming(false);
     }
   };
 
@@ -188,8 +234,8 @@ export function MercadoLivreCategoryTree({
                 <Button variant="outline" onClick={() => setSelectedCategory(null)}>
                   Cancelar Seleção
                 </Button>
-                <Button onClick={handleConfirmSelection}>
-                  Confirmar Vínculo
+                <Button onClick={handleConfirmSelection} disabled={isConfirming}>
+                  {isConfirming ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirmar Vínculo"}
                 </Button>
               </div>
             </div>
@@ -218,12 +264,25 @@ export function MercadoLivreCategoryTree({
             </div>
           ) : categoryTree ? (
             <div className="p-4 space-y-1">
-              <TreeNode
-                category={categoryTree}
-                level={0}
-                onSelect={handleSelectCategory}
-                searchTerm={searchTerm}
-              />
+              {Array.isArray(categoryTree)
+                ? categoryTree.map((cat) => (
+                    <TreeNode
+                      key={cat.mlId}
+                      category={cat}
+                      level={0}
+                      onSelect={handleSelectCategory}
+                      searchTerm={searchTerm}
+                    />
+                  ))
+                : (
+                    <TreeNode
+                      category={categoryTree}
+                      level={0}
+                      onSelect={handleSelectCategory}
+                      searchTerm={searchTerm}
+                    />
+                  )
+              }
             </div>
           ) : (
             <div className="flex items-center justify-center py-12">

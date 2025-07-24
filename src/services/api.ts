@@ -19,6 +19,9 @@ class ApiService {
     url: string,
     options: RequestInit = {}
   ): Promise<T> {
+    // Sempre pega o token mais recente do localStorage
+    this.token = localStorage.getItem('auth_token');
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...(options.headers as Record<string, string>),
@@ -41,8 +44,22 @@ class ApiService {
     }
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => null);
-      throw new Error(errorData?.message || `HTTP error! status: ${response.status}`);
+      let errorData = null;
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        // Se não for JSON, tenta pegar texto
+        try {
+          errorData = await response.text();
+        } catch {}
+      }
+      // Log detalhado do erro
+      console.error('Erro na requisição:', {
+        url: `${API_BASE_URL}${url}`,
+        status: response.status,
+        errorData
+      });
+      throw new Error(errorData?.message || errorData || `HTTP error! status: ${response.status}`);
     }
 
     return response.json();
@@ -166,8 +183,16 @@ class ApiService {
   async getCategoryChannel(categoryId: number, channelId: number): Promise<CategoryChannel | null> {
     try {
       return await this.request<CategoryChannel>(`/api/CategoriesChannels/GetByCategoryAndChannel?categoryId=${categoryId}&channelId=${channelId}`);
-    } catch (error) {
-      // Se retornar 404, significa que não existe vínculo
+    } catch (error: any) {
+      // Log do erro para debug
+      console.error('Erro em getCategoryChannel:', error);
+      // Se retornar 404 ou mensagem específica, significa que não existe vínculo
+      if (
+        error?.message === 'Associação categoria-canal não encontrada.' ||
+        error?.message?.toLowerCase().includes('associação categoria-canal não encontrada')
+      ) {
+        return null;
+      }
       return null;
     }
   }

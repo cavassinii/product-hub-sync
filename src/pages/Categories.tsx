@@ -214,20 +214,35 @@ export default function Categories() {
     setIsMarketplaceModalOpen(true);
   };
 
+  // Ajuste: ao selecionar o marketplace, feche o modal de seleção e abra o da árvore
   const handleSelectMarketplace = (channelId: number) => {
-    if (channelId === CHANNELS.MERCADO_LIVRE) {
-      setIsMercadoLivreTreeOpen(true);
+    if (channelId === CHANNELS.MERCADO_LIVRE && selectedCategoryForMarketplace) {
+      setIsMarketplaceModalOpen(false);
+      setTimeout(() => setIsMercadoLivreTreeOpen(true), 0); // Garante que o modal anterior feche antes de abrir o novo
     }
   };
 
-  const handleSelectMercadoLivreCategory = async (mlCategory: MercadoLivreCategory) => {
+  // Remova ou simplifique este handler:
+  // const handleSelectMercadoLivreCategory = async (mlCategory: MercadoLivreCategory) => { ... }
+
+  // NOVA FUNÇÃO para passar ao modal:
+  const handleConfirmLinkToMercadoLivre = async (mlCategory: MercadoLivreCategory) => {
     if (!selectedCategoryForMarketplace) return;
+
+    if (!selectedCategoryForMarketplace.is_final) {
+      toast({
+        title: "Apenas categorias finais podem ser vinculadas",
+        description: `A categoria "${selectedCategoryForMarketplace.name}" não é uma categoria final. Selecione uma categoria final para criar o vínculo.`,
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       await apiService.saveCategoryChannel({
-        category_channel_id: '', // Vazio para criar novo
+        category_channel_id: mlCategory.mlId, // Vazio para criar novo
         category_id: selectedCategoryForMarketplace.id,
-        channel_id: CHANNELS.MERCADO_LIVRE
+        channel_id: CHANNELS.MERCADO_LIVRE,
       });
 
       toast({
@@ -235,10 +250,9 @@ export default function Categories() {
         description: `Categoria "${selectedCategoryForMarketplace.name}" foi vinculada ao Mercado Livre.`,
       });
 
-      // Recarregar os vínculos
       await loadCategoryChannels();
-      
-      // Fechar modais
+      await loadCategories(); // <-- Adicione esta linha para recarregar a lista de categorias
+
       setIsMercadoLivreTreeOpen(false);
       setSelectedCategoryForMarketplace(null);
     } catch (error) {
@@ -399,8 +413,19 @@ export default function Categories() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleLinkMarketplace(category)}
+                                onClick={() => {
+                                  if (!category.is_final) {
+                                    toast({
+                                      title: "Apenas categorias finais podem ser vinculadas",
+                                      description: `A categoria "${category.name}" não é uma categoria final. Selecione uma categoria final para criar o vínculo.`,
+                                      variant: "destructive",
+                                    });
+                                    return;
+                                  }
+                                  handleLinkMarketplace(category);
+                                }}
                                 className="flex items-center space-x-1 text-muted-foreground hover:text-primary"
+                                disabled={!category.is_final}
                               >
                                 <Link2 className="h-4 w-4" />
                                 <span className="text-sm">Vincular</span>
@@ -496,7 +521,7 @@ export default function Categories() {
         isOpen={isMarketplaceModalOpen}
         onClose={() => {
           setIsMarketplaceModalOpen(false);
-          setSelectedCategoryForMarketplace(null);
+          // Não limpe selectedCategoryForMarketplace aqui!
         }}
         onSelectMarketplace={handleSelectMarketplace}
         categoryName={selectedCategoryForMarketplace?.name || ''}
@@ -504,13 +529,17 @@ export default function Categories() {
 
       {/* Mercado Livre Category Tree Modal */}
       <MercadoLivreCategoryTree
-        isOpen={isMercadoLivreTreeOpen}
+        isOpen={isMercadoLivreTreeOpen && !!selectedCategoryForMarketplace}
         onClose={() => {
           setIsMercadoLivreTreeOpen(false);
-          setSelectedCategoryForMarketplace(null);
+          setSelectedCategoryForMarketplace(null); // Limpe aqui, ao fechar o modal da árvore
         }}
-        onSelectCategory={handleSelectMercadoLivreCategory}
         categoryName={selectedCategoryForMarketplace?.name || ''}
+        categoryId={selectedCategoryForMarketplace?.id}
+        onLinked={async () => {
+          await loadCategories();
+          await loadCategoryChannels();
+        }}
       />
     </>
   );

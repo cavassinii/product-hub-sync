@@ -17,6 +17,20 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 
+// Função para formatar valor monetário para exibição
+function formatCurrency(value: number | string) {
+  if (typeof value === 'string') value = value.replace(/[^\d]/g, '');
+  const num = Number(value) / 100;
+  return num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// Função para tratar input do usuário e manter apenas números
+function parseCurrencyInput(input: string) {
+  // Remove tudo que não for número
+  const onlyNums = input.replace(/\D/g, '');
+  return onlyNums;
+}
+
 export default function ProductForm() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -48,6 +62,8 @@ export default function ProductForm() {
     is_active: true,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
+    cost_price: 0,
+    sale_price: 0,
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -128,7 +144,7 @@ export default function ProductForm() {
     const value = e.target.value;
     setFormData(prev => ({
       ...prev,
-      [field]: field === 'weight_gross' || field === 'weight_net' || field === 'width' || field === 'height'
+      [field]: field === 'weight_gross' || field === 'weight_net' || field === 'width' || field === 'height' || field === 'cost_price' || field === 'sale_price'
         ? parseFloat(value) || 0
         : value
     }));
@@ -540,6 +556,47 @@ export default function ProductForm() {
             </DialogContent>
           </Dialog>
 
+          {/* Preços */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold border-b pb-2">Preços</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="cost_price">Preço de Custo</Label>
+                <Input
+                  id="cost_price"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9,.]*"
+                  value={formatCurrency(Math.round((formData.cost_price || 0) * 100))}
+                  onChange={e => {
+                    const raw = parseCurrencyInput(e.target.value);
+                    const floatValue = Number(raw) / 100;
+                    setFormData(prev => ({ ...prev, cost_price: floatValue }));
+                  }}
+                  placeholder="0,00"
+                  maxLength={15}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="sale_price">Preço de Venda</Label>
+                <Input
+                  id="sale_price"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9,.]*"
+                  value={formatCurrency(Math.round((formData.sale_price || 0) * 100))}
+                  onChange={e => {
+                    const raw = parseCurrencyInput(e.target.value);
+                    const floatValue = Number(raw) / 100;
+                    setFormData(prev => ({ ...prev, sale_price: floatValue }));
+                  }}
+                  placeholder="0,00"
+                  maxLength={15}
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Características */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold border-b pb-2">Características</h3>
@@ -583,44 +640,68 @@ export default function ProductForm() {
                 <Label htmlFor="weight_gross">Peso Bruto (kg)</Label>
                 <Input
                   id="weight_gross"
-                  type="number"
-                  step="0.01"
-                  value={formData.weight_gross}
-                  onChange={handleInputChange('weight_gross')}
-                  placeholder="0.00"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9,.]*"
+                  value={formatCurrency(Math.round((formData.weight_gross || 0) * 100))}
+                  onChange={e => {
+                    const raw = parseCurrencyInput(e.target.value);
+                    const floatValue = Number(raw) / 100;
+                    setFormData(prev => ({ ...prev, weight_gross: floatValue }));
+                  }}
+                  placeholder="0,00"
+                  maxLength={15}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="weight_net">Peso Líquido (kg)</Label>
                 <Input
                   id="weight_net"
-                  type="number"
-                  step="0.01"
-                  value={formData.weight_net}
-                  onChange={handleInputChange('weight_net')}
-                  placeholder="0.00"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9,.]*"
+                  value={formatCurrency(Math.round((formData.weight_net || 0) * 100))}
+                  onChange={e => {
+                    const raw = parseCurrencyInput(e.target.value);
+                    const floatValue = Number(raw) / 100;
+                    setFormData(prev => ({ ...prev, weight_net: floatValue }));
+                  }}
+                  placeholder="0,00"
+                  maxLength={15}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="width">Largura (cm)</Label>
                 <Input
                   id="width"
-                  type="number"
-                  step="0.01"
-                  value={formData.width}
-                  onChange={handleInputChange('width')}
-                  placeholder="0.00"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9,.]*"
+                  value={formatCurrency(Math.round((formData.width || 0) * 100))}
+                  onChange={e => {
+                    const raw = parseCurrencyInput(e.target.value);
+                    const floatValue = Number(raw) / 100;
+                    setFormData(prev => ({ ...prev, width: floatValue }));
+                  }}
+                  placeholder="0,00"
+                  maxLength={15}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="height">Altura (cm)</Label>
                 <Input
                   id="height"
-                  type="number"
-                  step="0.01"
-                  value={formData.height}
-                  onChange={handleInputChange('height')}
-                  placeholder="0.00"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9,.]*"
+                  value={formatCurrency(Math.round((formData.height || 0) * 100))}
+                  onChange={e => {
+                    const raw = parseCurrencyInput(e.target.value);
+                    const floatValue = Number(raw) / 100;
+                    setFormData(prev => ({ ...prev, height: floatValue }));
+                  }}
+                  placeholder="0,00"
+                  maxLength={15}
                 />
               </div>
             </div>

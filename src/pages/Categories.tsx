@@ -405,10 +405,18 @@ export default function Categories() {
                         <TableCell>
                           <div className="flex items-center space-x-2">
                             {isLinkedToMercadoLivre(category.id) ? (
-                              <div className="flex items-center space-x-1 text-green-600">
+                              <button
+                                type="button"
+                                className="flex items-center space-x-1 text-green-600 hover:underline focus:outline-none"
+                                title="Editar vínculo com o Mercado Livre"
+                                onClick={() => {
+                                  setSelectedCategoryForMarketplace(category);
+                                  setIsMercadoLivreTreeOpen(true);
+                                }}
+                              >
                                 <CheckCircle className="h-4 w-4" />
                                 <span className="text-sm">ML</span>
-                              </div>
+                              </button>
                             ) : (
                               <Button
                                 variant="ghost"

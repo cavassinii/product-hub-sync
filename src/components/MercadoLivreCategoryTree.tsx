@@ -72,16 +72,14 @@ function TreeNode({ category, level, onSelect, searchTerm }: TreeNodeProps) {
             <p className="text-sm font-medium">{category.name}</p>
             <p className="text-xs text-muted-foreground">{category.mlId}</p>
           </div>
-          
-          {!hasChildren && (
-            <Button
-              size="sm"
-              onClick={() => onSelect(category)}
-              className="ml-2"
-            >
-              Selecionar
-            </Button>
-          )}
+          {/* Alteração: Permitir selecionar qualquer categoria, não só folhas */}
+          <Button
+            size="sm"
+            onClick={() => onSelect(category)}
+            className="ml-2"
+          >
+            Selecionar
+          </Button>
         </div>
       </div>
 

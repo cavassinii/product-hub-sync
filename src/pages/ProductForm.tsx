@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Save, ChevronRight, ArrowLeft as BackIcon, Tag, Search } from 'lucide-react';
+import { ArrowLeft, Save, ChevronRight, ArrowLeft as BackIcon, Tag, Search, Plus, X, MoveLeft, MoveRight } from 'lucide-react';
 import { apiService } from '@/services/api';
 import { Product } from '@/types/product';
 import { useToast } from '@/hooks/use-toast';
@@ -66,6 +66,10 @@ export default function ProductForm() {
     sale_price: 0,
   });
 
+  // Estados para gerenciamento de imagens
+  const [images, setImages] = useState<string[]>([]);
+  const [imageUrlInput, setImageUrlInput] = useState('');
+
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingProduct, setIsLoadingProduct] = useState(false);
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -82,6 +86,18 @@ export default function ProductForm() {
     loadBrands();
     loadCategories();
   }, [id, isEditing]);
+
+  // Atualizar estado das imagens quando formData mudar (no caso de edição)
+  useEffect(() => {
+    const imageUrls = [
+      formData.url_image1,
+      formData.url_image2,
+      formData.url_image3,
+      formData.url_image4,
+      formData.url_image5,
+    ].filter(url => url && url.trim() !== '');
+    setImages(imageUrls);
+  }, [formData.url_image1, formData.url_image2, formData.url_image3, formData.url_image4, formData.url_image5]);
 
   const loadProduct = async () => {
     if (!id || id === 'new') return;
@@ -121,7 +137,17 @@ export default function ProductForm() {
     setIsLoading(true);
 
     try {
-      await apiService.saveProduct(formData);
+      // Atualizar formData com as imagens ordenadas
+      const updatedFormData = {
+        ...formData,
+        url_image1: images[0] || '',
+        url_image2: images[1] || '',
+        url_image3: images[2] || '',
+        url_image4: images[3] || '',
+        url_image5: images[4] || '',
+      };
+
+      await apiService.saveProduct(updatedFormData);
       toast({
         title: isEditing ? "Produto atualizado" : "Produto criado",
         description: `O produto "${formData.title}" foi ${isEditing ? 'atualizado' : 'criado'} com sucesso.`,
@@ -235,6 +261,47 @@ export default function ProductForm() {
     return brand ? brand.name : 'Selecione uma marca';
   };
 
+  // Função para adicionar imagem
+  const handleAddImage = () => {
+    if (!imageUrlInput.trim()) {
+      toast({
+        title: "URL inválida",
+        description: "Por favor, insira uma URL válida para a imagem.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (images.length >= 5) {
+      toast({
+        title: "Limite atingido",
+        description: "Você pode adicionar no máximo 5 imagens.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setImages(prev => [...prev, imageUrlInput.trim()]);
+    setImageUrlInput('');
+    toast({
+      title: "Imagem adicionada",
+      description: "A imagem foi adicionada com sucesso.",
+    });
+  };
+
+  // Função para remover imagem
+  const handleRemoveImage = (index: number) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Função para reordenar imagens
+  const moveImage = (fromIndex: number, toIndex: number) => {
+    const newImages = [...images];
+    const [removed] = newImages.splice(fromIndex, 1);
+    newImages.splice(toIndex, 0, removed);
+    setImages(newImages);
+  };
+
   // Função para formatar data
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
@@ -324,22 +391,104 @@ export default function ProductForm() {
 
           {/* Imagens */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold border-b pb-2">Imagens</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[1, 2, 3, 4, 5].map((num) => (
-                <div key={num} className="space-y-2">
-                  <Label htmlFor={`image${num}`}>Imagem {num} {num === 1 && '*'}</Label>
-                  <Input
-                    id={`image${num}`}
-                    value={formData[`url_image${num}` as keyof Product] as string}
-                    onChange={handleInputChange(`url_image${num}` as keyof Product)}
-                    placeholder={`URL da imagem ${num}`}
-                    type="url"
-                    required={num === 1}
-                  />
-                </div>
-              ))}
+            <h3 className="text-lg font-semibold border-b pb-2">Imagens ({images.length}/5)</h3>
+            
+            {/* Input para adicionar imagem */}
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <Input
+                  value={imageUrlInput}
+                  onChange={(e) => setImageUrlInput(e.target.value)}
+                  placeholder="Cole a URL da imagem aqui"
+                  type="url"
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddImage())}
+                />
+              </div>
+              <Button
+                type="button"
+                onClick={handleAddImage}
+                disabled={images.length >= 5 || !imageUrlInput.trim()}
+                variant="outline"
+              >
+                Adicionar
+              </Button>
             </div>
+
+            {/* Preview das imagens */}
+            {images.length > 0 && (
+              <div className="space-y-4">
+                <Label>Imagens do produto (arraste para reordenar)</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {images.map((url, index) => (
+                    <div
+                      key={index}
+                      className="relative border rounded-lg p-3 bg-card hover:shadow-md transition-shadow group"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <Badge variant={index === 0 ? "default" : "secondary"} className="text-xs">
+                          {index === 0 ? "Principal" : `Imagem ${index + 1}`}
+                        </Badge>
+                        <div className="flex gap-1">
+                          {index > 0 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={() => moveImage(index, index - 1)}
+                              title="Mover para esquerda"
+                            >
+                              ←
+                            </Button>
+                          )}
+                          {index < images.length - 1 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={() => moveImage(index, index + 1)}
+                              title="Mover para direita"
+                            >
+                              →
+                            </Button>
+                          )}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                            onClick={() => handleRemoveImage(index)}
+                            title="Remover imagem"
+                          >
+                            ×
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="aspect-square rounded-md overflow-hidden bg-muted">
+                        <img
+                          src={url}
+                          alt={`Imagem ${index + 1}`}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/placeholder.svg';
+                          }}
+                        />
+                      </div>
+                      <div className="mt-2 text-xs text-muted-foreground truncate" title={url}>
+                        {url}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {images.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p>Nenhuma imagem adicionada ainda</p>
+                    <p className="text-sm">A primeira imagem será considerada como principal</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Categorização */}

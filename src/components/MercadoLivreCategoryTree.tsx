@@ -15,6 +15,7 @@ interface MercadoLivreCategoryTreeProps {
   categoryName: string;
   categoryId?: number; // NOVO: id da categoria interna
   onLinked?: () => void | Promise<void>; // NOVO
+  linkedMlId?: string; // NOVO: mlId já vinculado
 }
 
 interface TreeNodeProps {
@@ -72,14 +73,16 @@ function TreeNode({ category, level, onSelect, searchTerm }: TreeNodeProps) {
             <p className="text-sm font-medium">{category.name}</p>
             <p className="text-xs text-muted-foreground">{category.mlId}</p>
           </div>
-          {/* Alteração: Permitir selecionar qualquer categoria, não só folhas */}
-          <Button
-            size="sm"
-            onClick={() => onSelect(category)}
-            className="ml-2"
-          >
-            Selecionar
-          </Button>
+          {/* Alteração: Só permitir selecionar categorias finais (sem filhos) */}
+          {!hasChildren && (
+            <Button
+              size="sm"
+              onClick={() => onSelect(category)}
+              className="ml-2"
+            >
+              Selecionar
+            </Button>
+          )}
         </div>
       </div>
 
@@ -116,6 +119,7 @@ export function MercadoLivreCategoryTree({
   categoryName,
   categoryId,
   onLinked,
+  linkedMlId, // NOVO
 }: MercadoLivreCategoryTreeProps) {
   const [categoryTree, setCategoryTree] = useState<MercadoLivreCategory | MercadoLivreCategory[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -129,9 +133,35 @@ export function MercadoLivreCategoryTree({
       console.log('MercadoLivreCategoryTree modal opened');
       setCategoryTree(null); // Limpa a árvore sempre que abrir
       setIsLoading(true);    // Mostra loading imediatamente
+      setSelectedCategory(null); // Limpa seleção anterior
       loadCategoryTree();
     }
   }, [isOpen]);
+
+  // Seleção automática da categoria vinculada
+  useEffect(() => {
+    if (categoryTree && linkedMlId) {
+      const findCategoryByMlId = (cat: MercadoLivreCategory | MercadoLivreCategory[], mlId: string): MercadoLivreCategory | null => {
+        if (Array.isArray(cat)) {
+          for (const c of cat) {
+            const found = findCategoryByMlId(c, mlId);
+            if (found) return found;
+          }
+          return null;
+        }
+        if (cat.mlId === mlId) return cat;
+        if (cat.children) {
+          for (const child of cat.children) {
+            const found = findCategoryByMlId(child, mlId);
+            if (found) return found;
+          }
+        }
+        return null;
+      };
+      const found = findCategoryByMlId(categoryTree, linkedMlId);
+      if (found) setSelectedCategory(found);
+    }
+  }, [categoryTree, linkedMlId]);
 
   const loadCategoryTree = async () => {
     setIsLoading(true);

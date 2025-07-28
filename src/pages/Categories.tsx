@@ -548,6 +548,11 @@ export default function Categories() {
           await loadCategories();
           await loadCategoryChannels();
         }}
+        linkedMlId={
+          selectedCategoryForMarketplace && categoryChannels.get(selectedCategoryForMarketplace.id)?.category_channel_id
+            ? categoryChannels.get(selectedCategoryForMarketplace.id)?.category_channel_id
+            : undefined
+        }
       />
     </>
   );

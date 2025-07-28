@@ -53,7 +53,7 @@ export default function ProductForm() {
     color: '',
     size: '',
     category_id: 0,
-    brand_id: 0,
+    //brand_id: 0,
     weight_gross: 0,
     weight_net: 0,
     width: 0,
@@ -255,11 +255,11 @@ export default function ProductForm() {
   };
 
   // Função para exibir o nome da marca selecionada
-  const getSelectedBrandName = () => {
-    if (!formData.brand_id) return 'Selecione uma marca';
-    const brand = brands.find(b => b.id === formData.brand_id);
-    return brand ? brand.name : 'Selecione uma marca';
-  };
+  // const getSelectedBrandName = () => {
+  //   if (!formData.brand_id) return 'Selecione uma marca';
+  //   const brand = brands.find(b => b.id === formData.brand_id);
+  //   return brand ? brand.name : 'Selecione uma marca';
+  // };
 
   // Função para adicionar imagem
   const handleAddImage = () => {
@@ -495,6 +495,7 @@ export default function ProductForm() {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold border-b pb-2">Categorização</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/*
               <div className="space-y-2">
                 <Label htmlFor="brand_id">Marca *</Label>
                 <Button
@@ -514,6 +515,7 @@ export default function ProductForm() {
                   </div>
                 </Button>
               </div>
+              */}
               <div className="space-y-2">
                 <Label>Categoria *</Label>
                 <Button
@@ -658,6 +660,7 @@ export default function ProductForm() {
           </Dialog>
 
           {/* Modal de seleção de marca */}
+          {/*
           <Dialog open={showBrandModal} onOpenChange={setShowBrandModal}>
             <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
               <DialogHeader className="flex-shrink-0">
@@ -704,6 +707,7 @@ export default function ProductForm() {
               </ScrollArea>
             </DialogContent>
           </Dialog>
+          */}
 
           {/* Preços */}
           <div className="space-y-4">

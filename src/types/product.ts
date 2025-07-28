@@ -14,7 +14,7 @@ export interface Product {
   color: string;
   size: string;
   category_id: number | string;
-  brand_id: number | string;
+  //brand_id: number | string;
   weight_gross: number;
   weight_net: number;
   width: number;
@@ -48,7 +48,7 @@ export interface CreateProductRequest {
   color?: string;
   size?: string;
   category_id: number;
-  brand_id: number;
+  //brand_id: number;
   weight_gross?: number;
   weight_net?: number;
   width?: number;

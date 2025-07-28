@@ -56,7 +56,7 @@ export default function Products() {
       const filtered = products.filter(product =>
         (product.title?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
         (product.sku?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-        String(product.brand_id ?? '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        //String(product.brand_id ?? '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         String(product.category_id ?? '').toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredProducts(filtered);
@@ -188,7 +188,7 @@ export default function Products() {
                   <TableHead>Marca</TableHead>
                   <TableHead>Categoria</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Criado em</TableHead>
+                  <TableHead>Preço de Venda</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -223,14 +223,14 @@ export default function Products() {
                         </div>
                       </TableCell>
                       <TableCell className="font-mono text-sm">{product.sku}</TableCell>
-                      <TableCell>{brands.find(b => b.id === product.brand_id)?.name || '-'}</TableCell>
+                      {/*<TableCell>{brands.find(b => b.id === product.brand_id)?.name || '-'}</TableCell>*/}
                       <TableCell>{categories.find(c => c.id === product.category_id)?.name || '-'}</TableCell>
                       <TableCell>
                         <Badge variant={product.is_active ? "default" : "secondary"}>
                           {product.is_active ? 'Ativo' : 'Inativo'}
                         </Badge>
                       </TableCell>
-                      <TableCell>{formatDate(product.created_at)}</TableCell>
+                      <TableCell>{typeof product.sale_price === 'number' ? `R$ ${product.sale_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '-'}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end space-x-2">
                           <Link to={`/products/${product.id}`}>

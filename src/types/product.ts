@@ -25,6 +25,7 @@ export interface Product {
   updated_at: string;
   cost_price: number;
   sale_price: number;
+  stock: number;
 }
 
 export interface ProductResponse {
@@ -57,6 +58,7 @@ export interface CreateProductRequest {
   is_active?: boolean;
   cost_price?: number;
   sale_price?: number;
+  stock?: number;
 }
 
 export interface UpdateProductRequest {
@@ -84,6 +86,7 @@ export interface UpdateProductRequest {
   is_active?: boolean;
   cost_price?: number;
   sale_price?: number;
+  stock?: number;
 }
 
 // Tipo para resposta de listagem

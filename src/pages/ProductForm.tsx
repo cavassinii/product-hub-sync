@@ -64,6 +64,7 @@ export default function ProductForm() {
     updated_at: new Date().toISOString(),
     cost_price: 0,
     sale_price: 0,
+    stock: 0,
   });
 
   // Estados para gerenciamento de imagens
@@ -170,7 +171,7 @@ export default function ProductForm() {
     const value = e.target.value;
     setFormData(prev => ({
       ...prev,
-      [field]: field === 'weight_gross' || field === 'weight_net' || field === 'width' || field === 'height' || field === 'cost_price' || field === 'sale_price'
+      [field]: field === 'weight_gross' || field === 'weight_net' || field === 'width' || field === 'height' || field === 'cost_price' || field === 'sale_price' || field === 'stock'
         ? parseFloat(value) || 0
         : value
     }));
@@ -745,6 +746,18 @@ export default function ProductForm() {
                   }}
                   placeholder="0,00"
                   maxLength={15}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="stock">Estoque</Label>
+                <Input
+                  id="stock"
+                  type="number"
+                  min={0}
+                  value={formData.stock}
+                  onChange={e => setFormData(prev => ({ ...prev, stock: Number(e.target.value) }))}
+                  placeholder="Quantidade em estoque"
+                  required
                 />
               </div>
             </div>

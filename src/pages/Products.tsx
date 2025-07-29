@@ -185,10 +185,10 @@ export default function Products() {
                 <TableRow className="bg-muted/50">
                   <TableHead>Produto</TableHead>
                   <TableHead>SKU</TableHead>
-                  <TableHead>Marca</TableHead>
                   <TableHead>Categoria</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Preço de Venda</TableHead>
+                  <TableHead>Preço</TableHead>
+                  <TableHead>Estoque</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -223,7 +223,6 @@ export default function Products() {
                         </div>
                       </TableCell>
                       <TableCell className="font-mono text-sm">{product.sku}</TableCell>
-                      {/*<TableCell>{brands.find(b => b.id === product.brand_id)?.name || '-'}</TableCell>*/}
                       <TableCell>{categories.find(c => c.id === product.category_id)?.name || '-'}</TableCell>
                       <TableCell>
                         <Badge variant={product.is_active ? "default" : "secondary"}>
@@ -231,6 +230,7 @@ export default function Products() {
                         </Badge>
                       </TableCell>
                       <TableCell>{typeof product.sale_price === 'number' ? `R$ ${product.sale_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '-'}</TableCell>
+                      <TableCell className="text-center">{product.stock ?? 0}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end space-x-2">
                           <Link to={`/products/${product.id}`}>
@@ -238,11 +238,6 @@ export default function Products() {
                               <Eye className="h-4 w-4" />
                             </Button>
                           </Link>
-                          <IntegrationDropdown
-                            product={product}
-                            onMercadoLivreClick={handleOpenMercadoLivrePopup}
-                            onShopeeClick={handleOpenShopeePopup}
-                          />
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">

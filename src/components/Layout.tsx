@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Package, LogOut, Store, Tags, Award, BarChart3 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import MarketplacesIcon from '@/assets/shopping-bag.svg';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -28,9 +29,9 @@ export function Layout({ children }: LayoutProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-3">
-              <Store className="h-8 w-8 text-white" />
+              <img src={MarketplacesIcon} alt="Ícone de Marketplaces" className="w-12 h-12"/>
               <div>
-                <h1 className="text-xl font-bold text-white">E-Commerce Hub</h1>
+                <h1 className="text-xl font-bold text-white">MarketFlow</h1>
                 <p className="text-blue-100 text-sm">Gestão Integrada de Produtos</p>
               </div>
             </div>

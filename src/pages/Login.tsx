@@ -9,6 +9,7 @@ import { apiService } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { LoginRequest } from '@/types/auth';
+import MarketplacesIcon from '@/assets/shopping-bag.svg';
 
 export default function Login() {
   const [formData, setFormData] = useState<LoginRequest>({
@@ -70,13 +71,17 @@ export default function Login() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <Card className="w-full max-w-md gradient-card border-0 shadow-2xl">
         <CardHeader className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 gradient-primary rounded-full flex items-center justify-center">
-            <Store className="h-8 w-8 text-white" />
+          <div className="mx-auto w-20 h-20 gradient-primary rounded-full flex items-center justify-center">
+            <img
+              src={MarketplacesIcon}
+              alt="Ícone de Marketplaces"
+              className="w-12 h-12" 
+            />
           </div>
           <div>
-            <CardTitle className="text-2xl font-bold">E-Commerce Hub</CardTitle>
+            <CardTitle className="text-2xl font-bold">MarketFlow</CardTitle>            
             <CardDescription className="text-muted-foreground">
-              Acesse sua plataforma de gestão integrada
+              Plataforma de gestão integrada de marketplaces                     
             </CardDescription>
           </div>
         </CardHeader>

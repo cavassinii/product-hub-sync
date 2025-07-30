@@ -3,32 +3,48 @@ import { useState, useEffect } from 'react';
 import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { BarChart3, Package, TrendingUp, AlertCircle, CheckCircle, ExternalLink } from 'lucide-react';
+import { BarChart3, Package, TrendingUp, AlertCircle, CheckCircle, ExternalLink, Link2 } from 'lucide-react';
 import { apiService } from '@/services/api';
 import { Product } from '@/types/product';
+import { ProductIntegration } from '@/types/marketplace';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Dashboard() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [integrations, setIntegrations] = useState<ProductIntegration[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
     loadProducts();
+    loadIntegrations();
   }, []);
 
   const loadProducts = async () => {
     try {
-      setIsLoading(true);
       const data = await apiService.getProducts();
       setProducts(data || []);
     } catch (error) {
       toast({
-        title: "Erro ao carregar dados",
-        description: "Não foi possível carregar os dados do dashboard.",
+        title: "Erro ao carregar produtos",
+        description: "Não foi possível carregar os dados dos produtos.",
         variant: "destructive",
       });
       setProducts([]);
+    }
+  };
+
+  const loadIntegrations = async () => {
+    try {
+      const data = await apiService.getIntegratedProducts();
+      setIntegrations(data || []);
+    } catch (error) {
+      toast({
+        title: "Erro ao carregar integrações",
+        description: "Não foi possível carregar os dados das integrações.",
+        variant: "destructive",
+      });
+      setIntegrations([]);
     } finally {
       setIsLoading(false);
     }
@@ -61,11 +77,11 @@ export default function Dashboard() {
       bgColor: "bg-green-100",
     },
     {
-      title: "Produtos Inativos",
-      value: inactiveProducts,
-      icon: AlertCircle,
-      color: "text-orange-600",
-      bgColor: "bg-orange-100",
+      title: "Produtos Integrados",
+      value: integrations.length,
+      icon: Link2,
+      color: "text-indigo-600",
+      bgColor: "bg-indigo-100",
     },
     {
       title: "Novos (7 dias)",
@@ -214,7 +230,7 @@ export default function Dashboard() {
                             )}
                             <div>
                               <p className="font-medium">{product.title}</p>
-                              <p className="text-sm text-muted-foreground">Marca ID: {product.brand_id || 'N/A'}</p>
+                              <p className="text-sm text-muted-foreground">SKU: {product.sku}</p>
                             </div>
                           </div>
                           <Badge variant={product.is_active ? "default" : "secondary"}>

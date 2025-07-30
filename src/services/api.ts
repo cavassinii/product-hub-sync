@@ -3,7 +3,7 @@ import { LoginRequest, AuthResponse } from '@/types/auth';
 import { Product, ProductResponse } from '@/types/product';
 import { Category, CategoryResponse } from '@/types/category';
 import { Brand, BrandResponse } from '@/types/brand';
-import { CategoryChannel, MercadoLivreCategory, SaveCategoryChannelRequest } from '@/types/marketplace';
+import { CategoryChannel, MercadoLivreCategory, SaveCategoryChannelRequest, ProductIntegration } from '@/types/marketplace';
 import md5 from 'md5';
 
 const API_BASE_URL = 'https://localhost:7020';
@@ -207,6 +207,19 @@ class ApiService {
   // Mercado Livre category tree
   async getMercadoLivreCategoryTree(): Promise<MercadoLivreCategory> {
     return this.request<MercadoLivreCategory>('/api/MercadoLivre/GetCategoryTree');
+  }
+
+  // Mercado Livre publish products
+  async publishProductsToMercadoLivre(productIds: number[]): Promise<void> {
+    return this.request<void>('/api/MercadoLivre/PublishProducts', {
+      method: 'POST',
+      body: JSON.stringify(productIds),
+    });
+  }
+
+  // Products Integration
+  async getIntegratedProducts(): Promise<ProductIntegration[]> {
+    return this.request<ProductIntegration[]>('/api/Products/Integrated');
   }
 }
 

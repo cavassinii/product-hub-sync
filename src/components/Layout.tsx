@@ -17,6 +17,7 @@ export function Layout({ children }: LayoutProps) {
     { name: 'Dashboard', href: '/dashboard', icon: BarChart3 },
     { name: 'Produtos', href: '/products', icon: Package },
     { name: 'Categorias', href: '/categories', icon: Tags },
+    { name: 'Integrações', href: '/integrations', icon: Store },
     //{ name: 'Marcas', href: '/brands', icon: Award },
   ];
 

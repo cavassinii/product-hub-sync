@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -29,7 +30,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { MercadoLivrePopup } from '@/components/MercadoLivrePopup';
 import { ShopeePopup } from '@/components/ShopeePopup';
-import { IntegrationDropdown } from '@/components/IntegrationDropdown';
+import { ProductSelectionSidebar } from '@/components/ProductSelectionSidebar';
 import { Brand } from '@/types/brand';
 import { Category } from '@/types/category';
 
@@ -39,6 +40,7 @@ export default function Products() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
   const [showMercadoLivrePopup, setShowMercadoLivrePopup] = useState(false);
   const [showShopeePopup, setShowShopeePopup] = useState(false);
   const { toast } = useToast();
@@ -137,6 +139,31 @@ export default function Products() {
     setShowShopeePopup(true);
   };
 
+  const handleSelectProduct = (productId: number, checked: boolean) => {
+    if (checked) {
+      setSelectedProductIds(prev => [...prev, productId]);
+    } else {
+      setSelectedProductIds(prev => prev.filter(id => id !== productId));
+    }
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedProductIds(filteredProducts.map(p => p.id));
+    } else {
+      setSelectedProductIds([]);
+    }
+  };
+
+  const handleCloseSidebar = () => {
+    setSelectedProductIds([]);
+  };
+
+  const handlePublishSuccess = () => {
+    setSelectedProductIds([]);
+    loadProducts(); // Refresh the products list
+  };
+
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-';
     return new Date(dateString).toLocaleDateString('pt-BR');
@@ -183,6 +210,15 @@ export default function Products() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={
+                        filteredProducts.length > 0 &&
+                        selectedProductIds.length === filteredProducts.length
+                      }
+                      onCheckedChange={handleSelectAll}
+                    />
+                  </TableHead>
                   <TableHead>Produto</TableHead>
                   <TableHead>SKU</TableHead>
                   <TableHead>Categoria</TableHead>
@@ -195,13 +231,21 @@ export default function Products() {
               <TableBody>
                 {filteredProducts.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
                       {searchTerm ? 'Nenhum produto encontrado' : 'Nenhum produto cadastrado'}
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredProducts.map((product) => (
                     <TableRow key={`product-${product.id}`} className="hover:bg-muted/50 transition-colors">
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedProductIds.includes(product.id)}
+                          onCheckedChange={(checked) => 
+                            handleSelectProduct(product.id, checked as boolean)
+                          }
+                        />
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-3">
                           {product.url_image1 && (
@@ -305,6 +349,15 @@ export default function Products() {
             }}
           />
         </>
+      )}
+
+      {/* Product Selection Sidebar */}
+      {selectedProductIds.length > 0 && (
+        <ProductSelectionSidebar
+          selectedProductIds={selectedProductIds}
+          onClose={handleCloseSidebar}
+          onSuccess={handlePublishSuccess}
+        />
       )}
     </>
   );

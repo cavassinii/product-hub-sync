@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, RefreshCw, DollarSign } from 'lucide-react';
+import { Search, RefreshCw, DollarSign, X, CheckCircle, Loader2 } from 'lucide-react';
 import { apiService } from '@/services/api';
 import { ProductIntegration, CHANNEL_NAMES } from '@/types/marketplace';
 import { useToast } from '@/hooks/use-toast';
@@ -32,6 +32,9 @@ export default function Integrations() {
   const [selectedChannel, setSelectedChannel] = useState<string>('all');
   const [selectedIntegrations, setSelectedIntegrations] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showSyncSidebar, setShowSyncSidebar] = useState(false);
+  const [syncType, setSyncType] = useState<'stock' | 'price'>('stock');
+  const [syncStatus, setSyncStatus] = useState<'loading' | 'success' | 'idle'>('idle');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -111,6 +114,48 @@ export default function Integrations() {
     return CHANNEL_NAMES[channelId as keyof typeof CHANNEL_NAMES] || `Canal ${channelId}`;
   };
 
+  const handleSyncStock = () => {
+    setSyncType('stock');
+    setShowSyncSidebar(true);
+    setSyncStatus('loading');
+    
+    // Mock sync process
+    setTimeout(() => {
+      setSyncStatus('success');
+      toast({
+        title: "Estoque sincronizado!",
+        description: `${selectedIntegrations.length} produto(s) tiveram o estoque sincronizado.`,
+      });
+      
+      setTimeout(() => {
+        setShowSyncSidebar(false);
+        setSelectedIntegrations([]);
+        setSyncStatus('idle');
+      }, 2000);
+    }, 3000);
+  };
+
+  const handleSyncPrice = () => {
+    setSyncType('price');
+    setShowSyncSidebar(true);
+    setSyncStatus('loading');
+    
+    // Mock sync process
+    setTimeout(() => {
+      setSyncStatus('success');
+      toast({
+        title: "Preços sincronizados!",
+        description: `${selectedIntegrations.length} produto(s) tiveram os preços sincronizados.`,
+      });
+      
+      setTimeout(() => {
+        setShowSyncSidebar(false);
+        setSelectedIntegrations([]);
+        setSyncStatus('idle');
+      }, 2000);
+    }, 3000);
+  };
+
   return (
     <>
       <CardHeader>
@@ -169,11 +214,19 @@ export default function Integrations() {
                   </span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Button variant="outline" size="sm" disabled>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleSyncStock()}
+                  >
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Sincronizar Estoque
                   </Button>
-                  <Button variant="outline" size="sm" disabled>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleSyncPrice()}
+                  >
                     <DollarSign className="h-4 w-4 mr-2" />
                     Sincronizar Preço
                   </Button>
@@ -283,6 +336,66 @@ export default function Integrations() {
           </div>
         )}
       </CardContent>
+
+      {/* Sync Sidebar */}
+      {showSyncSidebar && (
+        <div className="fixed right-4 top-1/2 transform -translate-y-1/2 z-50">
+          <Card className="w-80 shadow-lg border-primary/20">
+            <div className="p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-lg">
+                  Sincronizando {syncType === 'stock' ? 'Estoque' : 'Preços'}
+                </h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setShowSyncSidebar(false);
+                    setSelectedIntegrations([]);
+                    setSyncStatus('idle');
+                  }}
+                  className="h-8 w-8 p-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              <div className="text-sm text-muted-foreground">
+                {selectedIntegrations.length} produto(s) selecionado(s)
+              </div>
+              
+              <div className="space-y-3">
+                {selectedIntegrations.map((integrationId, index) => {
+                  const integration = filteredIntegrations.find(i => i.product_Id === integrationId);
+                  if (!integration) return null;
+                  
+                  return (
+                    <div key={integrationId} className="flex items-center space-x-3 p-3 rounded-lg border">
+                      <div className="flex-shrink-0">
+                        {syncStatus === 'loading' ? (
+                          <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                        ) : syncStatus === 'success' ? (
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <div className="h-4 w-4 rounded-full border-2 border-muted" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {integration.product.title}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {integration.product.sku}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
     </>
   );
 }

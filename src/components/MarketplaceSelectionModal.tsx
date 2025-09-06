@@ -16,7 +16,16 @@ const marketplaces = [
     name: 'Mercado Livre',
     icon: Package,
     color: 'bg-yellow-500',
-    description: 'Vincular categoria ao Mercado Livre'
+    description: 'Vincular categoria ao Mercado Livre',
+    enabled: true
+  },
+  {
+    id: 2,
+    name: 'Shopee',
+    icon: Package,
+    color: 'bg-orange-500',
+    description: 'Vincular categoria ao Shopee (em breve)',
+    enabled: false
   }
 ];
 
@@ -38,22 +47,25 @@ export function MarketplaceSelectionModal({
         
         <div className="space-y-3">
           {marketplaces.map((marketplace) => (
-            <Card key={marketplace.id} className="cursor-pointer hover:bg-accent transition-colors">
+            <Card key={marketplace.id} className={`${marketplace.enabled ? 'cursor-pointer hover:bg-accent' : 'opacity-60'} transition-colors`}>
               <CardContent className="p-4">
                 <Button
                   variant="ghost"
                   className="w-full justify-start h-auto p-0"
+                  disabled={!marketplace.enabled}
                   onClick={() => {
-                    onSelectMarketplace(marketplace.id);
-                    onClose();
+                    if (marketplace.enabled) {
+                      onSelectMarketplace(marketplace.id);
+                      onClose();
+                    }
                   }}
                 >
                   <div className="flex items-center space-x-3">
-                    <div className={`p-2 rounded-lg ${marketplace.color}`}>
+                    <div className={`p-2 rounded-lg ${marketplace.color} ${!marketplace.enabled ? 'opacity-60' : ''}`}>
                       <marketplace.icon className="h-5 w-5 text-white" />
                     </div>
                     <div className="text-left">
-                      <p className="font-medium">{marketplace.name}</p>
+                      <p className={`font-medium ${!marketplace.enabled ? 'text-muted-foreground' : ''}`}>{marketplace.name}</p>
                       <p className="text-sm text-muted-foreground">
                         {marketplace.description}
                       </p>

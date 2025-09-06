@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -30,7 +30,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { MercadoLivrePopup } from '@/components/MercadoLivrePopup';
 import { ShopeePopup } from '@/components/ShopeePopup';
-import { ProductSelectionSidebar } from '@/components/ProductSelectionSidebar';
+import { MarketplaceSelectionModal } from '@/components/MarketplaceSelectionModal';
 import { Brand } from '@/types/brand';
 import { Category } from '@/types/category';
 
@@ -43,6 +43,8 @@ export default function Products() {
   const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
   const [showMercadoLivrePopup, setShowMercadoLivrePopup] = useState(false);
   const [showShopeePopup, setShowShopeePopup] = useState(false);
+  const [showMarketplaceModal, setShowMarketplaceModal] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
   const { toast } = useToast();
   const [brands, setBrands] = useState<Brand[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -155,13 +157,31 @@ export default function Products() {
     }
   };
 
-  const handleCloseSidebar = () => {
-    setSelectedProductIds([]);
-  };
+  const handleMarketplaceSelect = async (channelId: number) => {
+    setShowMarketplaceModal(false);
+    setIsPublishing(true);
 
-  const handlePublishSuccess = () => {
-    setSelectedProductIds([]);
-    loadProducts(); // Refresh the products list
+    try {
+      if (channelId === 1) { // Mercado Livre
+        await apiService.publishProductsToMercadoLivre(selectedProductIds);
+        
+        toast({
+          title: "Produtos enviados com sucesso!",
+          description: `${selectedProductIds.length} produto(s) foram enviados ao Mercado Livre.`,
+        });
+        
+        setSelectedProductIds([]);
+        loadProducts();
+      }
+    } catch (error) {
+      toast({
+        title: "Erro ao enviar produtos",
+        description: "Não foi possível enviar os produtos ao marketplace.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsPublishing(false);
+    }
   };
 
   const formatDate = (dateString?: string) => {
@@ -199,6 +219,30 @@ export default function Products() {
             className="pl-10 h-11"
           />
         </div>
+
+        {/* Actions Section */}
+        {selectedProductIds.length > 0 && (
+          <Card className="border-primary/20 bg-primary/5">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <span className="text-sm font-medium">
+                    {selectedProductIds.length} produto(s) selecionado(s)
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    onClick={() => setShowMarketplaceModal(true)}
+                    className="gradient-primary border-0 hover:opacity-90 transition-opacity"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Enviar Produtos
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Products Table */}
         {isLoading ? (
@@ -351,14 +395,13 @@ export default function Products() {
         </>
       )}
 
-      {/* Product Selection Sidebar */}
-      {selectedProductIds.length > 0 && (
-        <ProductSelectionSidebar
-          selectedProductIds={selectedProductIds}
-          onClose={handleCloseSidebar}
-          onSuccess={handlePublishSuccess}
-        />
-      )}
+      {/* Marketplace Selection Modal */}
+      <MarketplaceSelectionModal
+        isOpen={showMarketplaceModal}
+        onClose={() => setShowMarketplaceModal(false)}
+        onSelectMarketplace={handleMarketplaceSelect}
+        categoryName={`${selectedProductIds.length} produto(s)`}
+      />
     </>
   );
 }
